@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 
-import { discordClient, DiscordHelpers } from "./discord";
-import { Commands } from "./commands";
-import { logger } from "./logger";
-import * as _ from "lodash";
 import * as Discord from "discord.js";
+import * as _ from "lodash";
 import * as moment from "moment";
-import { Auth } from "./models/auth";
+import { Commands } from "./commands";
+import { DataStore, Strings } from "./constants";
 import { store } from "./data-store";
+import { discordClient, DiscordHelpers } from "./discord";
+import { logger } from "./logger";
+import { Auth } from "./models/auth";
 import { ChannelPlaylistCollection } from "./models/channel-playlist-collection";
 import { Config } from "./models/config";
-import { SpotifyHelpers } from "./spotify";
 import { Playlist } from "./models/playlist";
-import { DataStore, Strings } from "./constants";
+import { SpotifyHelpers } from "./spotify";
 import { DataUtils } from "./utils/data-utils";
 
 const auth: Auth = require("../auth.json");
@@ -51,9 +51,11 @@ export function checkMessage(message: Discord.Message) {
 
         // Execute the command if it exists
         if (commandFn) {
+            logger.info(`Executing command: ${command}`);
             commandFn(message, ...args);
         }
         else {
+            logger.info(`Tried executing command: ${command}, but failed -- no command found in ${Commands}`);
             const errorPrefixes = Strings.CommandError.Prefixes;
             message.channel.send(`${errorPrefixes[Math.floor(Math.random() * errorPrefixes.length)]} ${Strings.CommandError.Response}`);
         }

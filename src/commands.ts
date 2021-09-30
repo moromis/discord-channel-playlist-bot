@@ -1,8 +1,9 @@
 import { Command } from "./command";
-import { SubscribeCommand } from "./commands/subscribe";
 import { AuthorizeCommand } from "./commands/authorize";
-import { RegisterTokenCommand } from "./commands/register-token";
+import { ForceUserPlaylistUpdateCommand } from "./commands/force-user-playlist-update";
 import { HelpCommand } from "./commands/help";
+import { RegisterTokenCommand } from "./commands/register-token";
+import { SubscribeCommand } from "./commands/subscribe";
 import { UnsubscribeCommand } from "./commands/unsubscribe";
 
 export const Commands: { [commandName: string]: Command } = {
@@ -10,5 +11,6 @@ export const Commands: { [commandName: string]: Command } = {
     "help": HelpCommand,
     "register-token": RegisterTokenCommand,
     "subscribe": SubscribeCommand,
-    "unsubscribe": UnsubscribeCommand
+    "unsubscribe": UnsubscribeCommand,
+    "force-update": ForceUserPlaylistUpdateCommand
 };
