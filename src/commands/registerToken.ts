@@ -1,11 +1,11 @@
 import * as Discord from "discord.js";
 import * as moment from "moment";
 import { Command } from "../command";
+import Constants from "../constants";
+import { store } from "../dataStore";
 import { spotifyClient } from "../spotify";
-import { store } from "../data-store";
-import { UserAuth } from "../models/user-auth";
-import { SpotifyUser } from "../models/spotify-user";
-import { DataStore, Constants } from "../constants";
+import { SpotifyUser } from "../types/spotifyUser";
+import { UserAuth } from "../types/userAuth";
 
 export const Strings = Constants.Strings.Commands.RegisterToken;
 
@@ -45,7 +45,7 @@ export const RegisterTokenCommand: Command = async (
   spotifyClient.setAccessToken(accessToken);
   spotifyClient.setRefreshToken(refreshToken);
 
-  let meResponse: any;
+  let meResponse;
   try {
     meResponse = await spotifyClient.getMe();
   } catch (e) {
@@ -62,7 +62,7 @@ export const RegisterTokenCommand: Command = async (
 
   // Store the token for the user
   store.mutate<UserAuth.Collection>(
-    DataStore.Keys.userAuthCollection,
+    Constants.DataStore.Keys.userAuthCollection,
     (collection) => {
       collection = collection || {};
       collection[spotifyUserId] = {
@@ -77,7 +77,7 @@ export const RegisterTokenCommand: Command = async (
 
   // Update the Spotify user lookup table
   store.mutate<SpotifyUser.LookupMap>(
-    DataStore.Keys.spotifyUserLookupMap,
+    Constants.DataStore.Keys.spotifyUserLookupMap,
     (map) => {
       map = map || {};
       map[message.author.id] = spotifyUserId;

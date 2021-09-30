@@ -1,8 +1,8 @@
 import { Command } from "./command";
 import { AuthorizeCommand } from "./commands/authorize";
-import { ForceUserPlaylistUpdateCommand } from "./commands/force-user-playlist-update";
+import { ForceUserPlaylistUpdateCommand } from "./commands/forceUpdate";
 import { HelpCommand } from "./commands/help";
-import { RegisterTokenCommand } from "./commands/register-token";
+import { RegisterTokenCommand } from "./commands/registerToken";
 import { SubscribeCommand } from "./commands/subscribe";
 import { UnsubscribeCommand } from "./commands/unsubscribe";
 

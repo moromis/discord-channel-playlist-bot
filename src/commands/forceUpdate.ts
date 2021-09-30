@@ -1,11 +1,10 @@
 import * as Discord from "discord.js";
 import { Command } from "../command";
-import { Constants, DataStore } from "../constants";
-import { store } from "../data-store";
+import Constants from "../constants";
+import { store } from "../dataStore";
 import { logger } from "../logger";
-import { ChannelPlaylistCollection } from "../models/channel-playlist-collection";
-import { Playlist } from "../models/playlist";
-import { SpotifyHelpers } from "../spotify";
+import { ChannelPlaylistCollection, Playlist } from "../types/playlist";
+import spotifyUtils from "../utils/spotifyUtils";
 
 export const Strings = Constants.Strings.Commands.ForceUserPlaylistUpdate;
 
@@ -14,13 +13,13 @@ export const ForceUserPlaylistUpdateCommand: Command = async (
 ) => {
   const channelPlaylistCollection =
     store.get<ChannelPlaylistCollection>(
-      DataStore.Keys.channelPlaylistCollection
+      Constants.DataStore.Keys.channelPlaylistCollection
     ) || {};
   const channelPlaylist: Playlist =
     channelPlaylistCollection[message.channel.id];
 
   if (channelPlaylist) {
-    await SpotifyHelpers.updateChannelPlaylist(channelPlaylist);
+    await spotifyUtils.updateChannelPlaylist(channelPlaylist);
 
     message.channel.send(Strings.successResponse);
   } else {

@@ -1,19 +1,15 @@
 import * as fs from "fs";
 import * as path from "path";
-import { Config } from "./models/config";
+import * as config from "../config.json";
 
-const config: Config = require("../config.json");
+type Mutator<T> = (value: T | undefined) => T;
 
 export interface DataStore {
   set<T>(key: string, value: T): void;
-  mutate<T>(key: string, mutator: DataStore.Mutator<T>);
+  mutate<T>(key: string, mutator: Mutator<T>);
   get<T>(key: string): T;
   has(key: string): boolean;
   remove(key: string): void;
-}
-
-export namespace DataStore {
-  export type Mutator<T> = (value: T | undefined) => T;
 }
 
 export class LocalDataStore implements DataStore {
@@ -27,7 +23,7 @@ export class LocalDataStore implements DataStore {
     this.saveStore(store);
   }
 
-  public mutate<T>(key: string, mutator: DataStore.Mutator<T>) {
+  public mutate<T>(key: string, mutator: Mutator<T>): void {
     const store = this.loadStore();
 
     store[key] = mutator(store[key]);

@@ -1,16 +1,16 @@
 import * as Discord from "discord.js";
 import * as _ from "lodash";
 import { Command } from "../command";
-import { store } from "../data-store";
-import { Subscription } from "../models/subscription";
-import { SpotifyUser } from "../models/spotify-user";
-import { DataStore, Constants } from "../constants";
+import Constants from "../constants";
+import { store } from "../dataStore";
+import { SpotifyUser } from "../types/spotifyUser";
+import { Subscription } from "../types/subscription";
 
 export const Strings = Constants.Strings.Commands.Unsubscribe;
 
 export const UnsubscribeCommand: Command = (message: Discord.Message) => {
   const spotifyUserId = (store.get<SpotifyUser.LookupMap>(
-    DataStore.Keys.spotifyUserLookupMap
+    Constants.DataStore.Keys.spotifyUserLookupMap
   ) || {})[message.author.id];
 
   if (!spotifyUserId) {
@@ -21,7 +21,7 @@ export const UnsubscribeCommand: Command = (message: Discord.Message) => {
   let didUnsubscribe = true;
 
   store.mutate<Subscription.Collection>(
-    DataStore.Keys.subscriptions,
+    Constants.DataStore.Keys.subscriptions,
     (collection) => {
       collection = collection || {};
 

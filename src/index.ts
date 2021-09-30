@@ -3,25 +3,22 @@
 import * as Discord from "discord.js";
 import * as _ from "lodash";
 import * as moment from "moment";
+import * as auth from "../auth.json";
+import * as config from "../config.json";
 import { Commands } from "./commands";
-import { DataStore, Strings } from "./constants";
-import { store } from "./data-store";
-import { discordClient, DiscordHelpers } from "./discord";
+import Constants from "./constants";
+import { store } from "./dataStore";
+import DiscordHelpers, { discordClient } from "./discord";
 import { logger } from "./logger";
-import { Auth } from "./models/auth";
-import { ChannelPlaylistCollection } from "./models/channel-playlist-collection";
-import { Config } from "./models/config";
-import { Playlist } from "./models/playlist";
-import { SpotifyHelpers } from "./spotify";
-import { DataUtils } from "./utils/data-utils";
-
-const auth: Auth = require("../auth.json");
-const config: Config = require("../config.json");
+import { ChannelPlaylistCollection, Playlist } from "./types/playlist";
+import dataUtils from "./utils/dataUtils";
+import playlistUtils from "./utils/playlistUtils";
+import spotifyUtils from "./utils/spotifyUtils";
 
 // How many times the server should check for playlist updates, in seconds
 const TICKS_PER_SECOND = 1;
 
-export function main() {
+export function main(): void {
   discordClient.on("error", logger.error);
 
   // login
@@ -42,7 +39,7 @@ export function main() {
   });
 }
 
-export function checkMessage(message: Discord.Message) {
+export function checkMessage(message: Discord.Message): void {
   const isBotMention: boolean = message.mentions.users.some(
     (user) => user.tag === discordClient.user.tag
   );
@@ -59,17 +56,17 @@ export function checkMessage(message: Discord.Message) {
       logger.info(
         `Tried executing command: ${command}, but failed -- no command found in ${Commands}`
       );
-      const errorPrefixes = Strings.CommandError.Prefixes;
+      const errorPrefixes = Constants.Strings.CommandError.Prefixes;
       message.channel.send(
         `${errorPrefixes[Math.floor(Math.random() * errorPrefixes.length)]} ${
-          Strings.CommandError.Response
+          Constants.Strings.CommandError.Response
         }`
       );
     }
   } else {
     if (message.channel instanceof Discord.TextChannel) {
       // Only monitor channels that are subscribed to
-      if (DataUtils.isChannelSubscribedTo(message.channel.id)) {
+      if (dataUtils.isChannelSubscribedTo(message.channel.id)) {
         // Check for new tracks from users in the channel
         DiscordHelpers.extractAndProcessTracks(message);
       }
@@ -87,12 +84,12 @@ async function checkChannelListStatus(): Promise<void> {
   // Get all managed channel playlists
   const channelPlaylistCollection = _.clone(
     store.get<ChannelPlaylistCollection>(
-      DataStore.Keys.channelPlaylistCollection
+      Constants.DataStore.Keys.channelPlaylistCollection
     ) || {}
   );
   const commitPlaylistChanges = () =>
     store.set<ChannelPlaylistCollection>(
-      DataStore.Keys.channelPlaylistCollection,
+      Constants.DataStore.Keys.channelPlaylistCollection,
       channelPlaylistCollection
     );
 
@@ -100,7 +97,7 @@ async function checkChannelListStatus(): Promise<void> {
     const playlist: Playlist = channelPlaylistCollection[key];
 
     // Check if enough time has elapsed to commit this channel's playlist to each subscribed user's Spotify account
-    if (playlist && Playlist.requiresUpdate(playlist)) {
+    if (playlist && playlistUtils.requiresUpdate(playlist)) {
       const channel = discordClient.channels.find(
         (c) => c.id === playlist.channelId
       ) as Discord.TextChannel;
@@ -112,14 +109,14 @@ async function checkChannelListStatus(): Promise<void> {
 
         // Send notification (if enabled)
         if (channel && config.messageOnPlaylistCommit) {
-          channel.send(Strings.Notifications.messageOnPlaylistCommit);
+          channel.send(Constants.Strings.Notifications.messageOnPlaylistCommit);
         }
 
         logger.log(`Updating playlist for "${playlist.channelName}"`);
 
         // Update the users playlists
         try {
-          await SpotifyHelpers.updateChannelPlaylist(playlist);
+          await spotifyUtils.updateChannelPlaylist(playlist);
         } catch (e) {
           logger.error(
             `Error updating playlist for channel "${playlist.channelName}": `
@@ -130,7 +127,7 @@ async function checkChannelListStatus(): Promise<void> {
 
       if (!config.keepOldPlaylistSongs) {
         // Re-initialize the list and remove all previous songs
-        channelPlaylistCollection[key] = Playlist.create(channel);
+        channelPlaylistCollection[key] = playlistUtils.create(channel);
         commitPlaylistChanges();
       }
 
