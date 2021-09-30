@@ -1,11 +1,11 @@
 export interface Auth {
-    discord: {
-        token: string;
-    };
+  discord: {
+    token: string;
+  };
 
-    spotify: {
-        clientId: string;
-        clientSecret: string;
-        redirectUri: string;
-    };
+  spotify: {
+    clientId: string;
+    clientSecret: string;
+    redirectUri: string;
+  };
 }

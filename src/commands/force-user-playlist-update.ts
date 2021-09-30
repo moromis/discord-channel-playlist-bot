@@ -9,17 +9,24 @@ import { SpotifyHelpers } from "../spotify";
 
 export const Strings = Constants.Strings.Commands.ForceUserPlaylistUpdate;
 
-export const ForceUserPlaylistUpdateCommand: Command = async (message: Discord.Message) => {
+export const ForceUserPlaylistUpdateCommand: Command = async (
+  message: Discord.Message
+) => {
+  const channelPlaylistCollection =
+    store.get<ChannelPlaylistCollection>(
+      DataStore.Keys.channelPlaylistCollection
+    ) || {};
+  const channelPlaylist: Playlist =
+    channelPlaylistCollection[message.channel.id];
 
-    const channelPlaylistCollection = store.get<ChannelPlaylistCollection>(DataStore.Keys.channelPlaylistCollection) || {};
-    const channelPlaylist: Playlist = channelPlaylistCollection[message.channel.id];
+  if (channelPlaylist) {
+    await SpotifyHelpers.updateChannelPlaylist(channelPlaylist);
 
-    if (channelPlaylist) {
-        await SpotifyHelpers.updateChannelPlaylist(channelPlaylist);
-
-        message.channel.send(Strings.successResponse);
-    } else {
-        logger.info(`Channel playlist doesn't exist: ${channelPlaylist} in ${channelPlaylistCollection}`);
-    }
-    return Promise.resolve();
+    message.channel.send(Strings.successResponse);
+  } else {
+    logger.info(
+      `Channel playlist doesn't exist: ${channelPlaylist} in ${channelPlaylistCollection}`
+    );
+  }
+  return Promise.resolve();
 };

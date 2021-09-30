@@ -7,10 +7,10 @@ import { SubscribeCommand } from "./commands/subscribe";
 import { UnsubscribeCommand } from "./commands/unsubscribe";
 
 export const Commands: { [commandName: string]: Command } = {
-    "authorize": AuthorizeCommand,
-    "help": HelpCommand,
-    "register-token": RegisterTokenCommand,
-    "subscribe": SubscribeCommand,
-    "unsubscribe": UnsubscribeCommand,
-    "force-update": ForceUserPlaylistUpdateCommand
+  authorize: AuthorizeCommand,
+  help: HelpCommand,
+  "register-token": RegisterTokenCommand,
+  subscribe: SubscribeCommand,
+  unsubscribe: UnsubscribeCommand,
+  "force-update": ForceUserPlaylistUpdateCommand,
 };

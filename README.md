@@ -34,14 +34,14 @@ Here's an example configuration. Please note that these values must be replaced 
 
 ```json
 {
-    "discord": {
-        "token": "h7ghYch9MgGOm.QfhlP_WqbzaA829SXiUT450JjczF6yVj68K2FoFSn3agHt"
-    },
-    "spotify": {
-        "clientId": "0c06ab5e9f03ecc46e9756e27db05b7a",
-        "clientSecret": "da7d9799e442ae4dba268cc73f0843ce",
-        "redirectUri": "https://js.do/code/231611"
-    }
+  "discord": {
+    "token": "h7ghYch9MgGOm.QfhlP_WqbzaA829SXiUT450JjczF6yVj68K2FoFSn3agHt"
+  },
+  "spotify": {
+    "clientId": "0c06ab5e9f03ecc46e9756e27db05b7a",
+    "clientSecret": "da7d9799e442ae4dba268cc73f0843ce",
+    "redirectUri": "https://js.do/code/231611"
+  }
 }
 ```
 

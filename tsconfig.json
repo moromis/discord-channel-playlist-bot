@@ -1,20 +1,18 @@
 {
-    "compilerOptions": {
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "noImplicitReturns": true,
-        "allowSyntheticDefaultImports": true,
-        "declaration": true,
-        "stripInternal": true,
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "target": "es6",
-        "lib": [
-            "esnext"
-        ],
-        "outDir": "./dist",
-        "sourceMap": true
-    }
+  "compilerOptions": {
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "stripInternal": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "es6",
+    "lib": ["esnext"],
+    "outDir": "./dist",
+    "sourceMap": true
+  }
 }

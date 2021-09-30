@@ -22,107 +22,124 @@ const config: Config = require("../config.json");
 const TICKS_PER_SECOND = 1;
 
 export function main() {
-    discordClient.on("error", logger.error);
+  discordClient.on("error", logger.error);
 
-    // login
-    discordClient.login(auth.discord.token);
+  // login
+  discordClient.login(auth.discord.token);
 
-    discordClient.on("ready", () => {
-        logger.info(`Logged in as ${discordClient.user.tag}`);
+  discordClient.on("ready", () => {
+    logger.info(`Logged in as ${discordClient.user.tag}`);
 
-        // Manage all channels' playlists
-        checkChannelListStatus();
-    });
-    
-    discordClient.on("message", (message) => {
-        // Analyze each user message that comes in
-        if (message.author.id !== discordClient.user.id) {
-            checkMessage(message);
-        }
-    });
+    // Manage all channels' playlists
+    checkChannelListStatus();
+  });
+
+  discordClient.on("message", (message) => {
+    // Analyze each user message that comes in
+    if (message.author.id !== discordClient.user.id) {
+      checkMessage(message);
+    }
+  });
 }
 
 export function checkMessage(message: Discord.Message) {
-    const isBotMention: boolean = message.mentions.users.some(user => user.tag === discordClient.user.tag);
+  const isBotMention: boolean = message.mentions.users.some(
+    (user) => user.tag === discordClient.user.tag
+  );
 
-    if (isBotMention) {
-        const [, command, ...args] = message.content.split(/\s+/);
-        const commandFn = Commands[command];
+  if (isBotMention) {
+    const [, command, ...args] = message.content.split(/\s+/);
+    const commandFn = Commands[command];
 
-        // Execute the command if it exists
-        if (commandFn) {
-            logger.info(`Executing command: ${command}`);
-            commandFn(message, ...args);
-        }
-        else {
-            logger.info(`Tried executing command: ${command}, but failed -- no command found in ${Commands}`);
-            const errorPrefixes = Strings.CommandError.Prefixes;
-            message.channel.send(`${errorPrefixes[Math.floor(Math.random() * errorPrefixes.length)]} ${Strings.CommandError.Response}`);
-        }
+    // Execute the command if it exists
+    if (commandFn) {
+      logger.info(`Executing command: ${command}`);
+      commandFn(message, ...args);
+    } else {
+      logger.info(
+        `Tried executing command: ${command}, but failed -- no command found in ${Commands}`
+      );
+      const errorPrefixes = Strings.CommandError.Prefixes;
+      message.channel.send(
+        `${errorPrefixes[Math.floor(Math.random() * errorPrefixes.length)]} ${
+          Strings.CommandError.Response
+        }`
+      );
     }
-    else {
-        if (message.channel instanceof Discord.TextChannel) {
-            // Only monitor channels that are subscribed to
-            if (DataUtils.isChannelSubscribedTo(message.channel.id)) {
-                // Check for new tracks from users in the channel
-                DiscordHelpers.extractAndProcessTracks(message);
-            }
-        } else if (message.channel instanceof Discord.DMChannel) {
-            // If this is a DM, assume someone is registering a token
-            Commands["register-token"](message, message.content);
-        }
+  } else {
+    if (message.channel instanceof Discord.TextChannel) {
+      // Only monitor channels that are subscribed to
+      if (DataUtils.isChannelSubscribedTo(message.channel.id)) {
+        // Check for new tracks from users in the channel
+        DiscordHelpers.extractAndProcessTracks(message);
+      }
+    } else if (message.channel instanceof Discord.DMChannel) {
+      // If this is a DM, assume someone is registering a token
+      Commands["register-token"](message, message.content);
     }
+  }
 }
 
 async function checkChannelListStatus(): Promise<void> {
-    // Check for updates on the given tick interval
-    setTimeout(checkChannelListStatus, 1000 / TICKS_PER_SECOND);
+  // Check for updates on the given tick interval
+  setTimeout(checkChannelListStatus, 1000 / TICKS_PER_SECOND);
 
-    // Get all managed channel playlists
-    const channelPlaylistCollection = _.clone(store.get<ChannelPlaylistCollection>(DataStore.Keys.channelPlaylistCollection) || {});
-    const commitPlaylistChanges = () => store.set<ChannelPlaylistCollection>(DataStore.Keys.channelPlaylistCollection, channelPlaylistCollection);
+  // Get all managed channel playlists
+  const channelPlaylistCollection = _.clone(
+    store.get<ChannelPlaylistCollection>(
+      DataStore.Keys.channelPlaylistCollection
+    ) || {}
+  );
+  const commitPlaylistChanges = () =>
+    store.set<ChannelPlaylistCollection>(
+      DataStore.Keys.channelPlaylistCollection,
+      channelPlaylistCollection
+    );
 
-    for (const key in channelPlaylistCollection) {
-        const playlist: Playlist = channelPlaylistCollection[key];
-    
-        // Check if enough time has elapsed to commit this channel's playlist to each subscribed user's Spotify account
-        if (playlist && Playlist.requiresUpdate(playlist)) {
-            const channel = discordClient.channels.find(c => c.id === playlist.channelId) as Discord.TextChannel;
+  for (const key in channelPlaylistCollection) {
+    const playlist: Playlist = channelPlaylistCollection[key];
 
-            if (!_.isEmpty(playlist.songUris)) {
+    // Check if enough time has elapsed to commit this channel's playlist to each subscribed user's Spotify account
+    if (playlist && Playlist.requiresUpdate(playlist)) {
+      const channel = discordClient.channels.find(
+        (c) => c.id === playlist.channelId
+      ) as Discord.TextChannel;
 
-                // Update the last commit date
-                channelPlaylistCollection[key].lastCommitDate = moment().toISOString();
-                commitPlaylistChanges();
+      if (!_.isEmpty(playlist.songUris)) {
+        // Update the last commit date
+        channelPlaylistCollection[key].lastCommitDate = moment().toISOString();
+        commitPlaylistChanges();
 
-                // Send notification (if enabled)
-                if (channel && config.messageOnPlaylistCommit) {
-                    channel.send(Strings.Notifications.messageOnPlaylistCommit);
-                }
-
-                logger.log(`Updating playlist for "${playlist.channelName}"`);
-
-                // Update the users playlists
-                try {
-                    await SpotifyHelpers.updateChannelPlaylist(playlist);
-                } catch (e) {
-                    logger.error(`Error updating playlist for channel "${playlist.channelName}": `);
-                    logger.error(e);
-                }
-            }
-
-            if (!config.keepOldPlaylistSongs) {
-                // Re-initialize the list and remove all previous songs
-                channelPlaylistCollection[key] = Playlist.create(channel);
-                commitPlaylistChanges();
-            }
-
-            // Update one playlist per tick
-            break;
+        // Send notification (if enabled)
+        if (channel && config.messageOnPlaylistCommit) {
+          channel.send(Strings.Notifications.messageOnPlaylistCommit);
         }
-    }
 
-    return Promise.resolve();
+        logger.log(`Updating playlist for "${playlist.channelName}"`);
+
+        // Update the users playlists
+        try {
+          await SpotifyHelpers.updateChannelPlaylist(playlist);
+        } catch (e) {
+          logger.error(
+            `Error updating playlist for channel "${playlist.channelName}": `
+          );
+          logger.error(e);
+        }
+      }
+
+      if (!config.keepOldPlaylistSongs) {
+        // Re-initialize the list and remove all previous songs
+        channelPlaylistCollection[key] = Playlist.create(channel);
+        commitPlaylistChanges();
+      }
+
+      // Update one playlist per tick
+      break;
+    }
+  }
+
+  return Promise.resolve();
 }
 
 ////
