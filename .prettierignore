@@ -7,3 +7,7 @@ auth.json
 config.json
 
 *.log
+
+# Ignore artifacts:
+build
+coverage
