@@ -14,7 +14,14 @@ export const HelpCommand: Command = (message: Discord.Message) => {
   );
 
   message.channel.send(
-    `${Strings.generalHelp[1]}\r\n\r\n${Strings.generalHelp[2]}\r\n\r\n${Strings.availableCommands}\r\n${commandList}`,
+    `${Strings.generalHelp[1]}
+
+${Strings.generalHelp[2]}
+    
+${Strings.availableCommands}
+${commandList}
+PS: You can use the first letter of any of the commands preceded by an exclamation point: e.g. \`!a\``,
     { reply: message.author }
   );
+  return Promise.resolve();
 };

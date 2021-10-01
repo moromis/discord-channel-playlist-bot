@@ -1,3 +1,5 @@
+export type PlaylistId = string;
+
 export interface PlaylistCollection {
   [channelId: string]: PlaylistId;
 }
@@ -7,8 +9,6 @@ type UserDataType = {
 };
 
 export namespace UserData {
-  export type PlaylistId = string;
-
   export interface Collection {
     [userId: string]: UserDataType;
   }

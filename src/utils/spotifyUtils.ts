@@ -1,3 +1,4 @@
+import * as Discord from "discord.js";
 import * as _ from "lodash";
 import * as moment from "moment";
 import * as config from "../../config.json";
@@ -8,14 +9,16 @@ import { spotifyClient } from "../spotify";
 import { Playlist } from "../types/playlist";
 import { SpotifyUser } from "../types/spotifyUser";
 import { Subscription } from "../types/subscription";
-import { UserAuth } from "../types/userAuth";
+import { UserAuth, UserAuthType } from "../types/userAuth";
 import { PlaylistCollection, UserData } from "../types/userData";
+import { getChannelPlaylistId } from "./dataUtils";
+import playlistUtils from "./playlistUtils";
 
 function createAuthorizationUrl(): string {
-  return spotifyClient.createAuthorizeURL(["playlist-modify-public"]);
+  return spotifyClient.createAuthorizeURL(["playlist-modify-public"], "");
 }
 
-async function refreshAccessToken(auth: UserAuth): Promise<void> {
+async function refreshAccessToken(auth: UserAuthType): Promise<void> {
   spotifyClient.setAccessToken(auth.accessToken);
   spotifyClient.setRefreshToken(auth.refreshToken);
 
@@ -38,7 +41,7 @@ async function authenticateAsUser(userId: SpotifyUser.Id): Promise<void> {
   const authCollection = store.get<UserAuth.Collection>(
     Constants.DataStore.Keys.userAuthCollection
   );
-  const record: UserAuth = authCollection[userId];
+  const record: UserAuthType = authCollection[userId];
 
   if (!record) {
     return Promise.reject(SpotifyAuthenticationErrors.NOT_AUTHORIZED);
@@ -64,162 +67,211 @@ async function authenticateAsUser(userId: SpotifyUser.Id): Promise<void> {
   return Promise.resolve();
 }
 
-async function createUserPlaylist(
-  userId: SpotifyUser.Id,
-  name: string
-): Promise<string> {
-  let response;
-  try {
-    response = await spotifyClient.createPlaylist(userId, name);
-  } catch (e) {
-    logger.error(
-      `Error creating playlist for Spotify user ${userId}: ${JSON.stringify(e)}`
-    );
-    return Promise.reject(e);
+function getUserPlaylists(userId: string): PlaylistCollection {
+  const userDataStore = _.clone(
+    store.get<UserData.Collection>(Constants.DataStore.Keys.userData) || {}
+  );
+  // store.set<UserData.Collection>(
+  //   Constants.DataStore.Keys.userData,
+  //   userDataStore
+  // );
+
+  let userData = userDataStore[userId];
+
+  if (!userData) {
+    userData = userDataStore[userId] = {};
   }
 
-  return Promise.resolve(response.body.id);
+  if (!userData.playlists) {
+    userData.playlists = {};
+  }
+
+  return userData.playlists;
 }
 
-async function updateChannelPlaylist(playlist: Playlist): Promise<void> {
+const createNewSpotifyPlaylist =
+  (
+    userDataStore: UserData.Collection,
+    spotifyUserId: SpotifyUser.Id,
+    playlist: Playlist
+  ) =>
+  async (): Promise<void> => {
+    const playlistName = `${playlist.channelName} - ${config.playlistName}`;
+    if (!(playlist.channelId in userDataStore[spotifyUserId])) {
+      try {
+        const response = await spotifyClient.createPlaylist(playlistName);
+        const spotifyPlaylistId = response.body.id;
+        store.mutate<UserData.Collection>(
+          Constants.DataStore.Keys.userData,
+          (userData) => ({
+            ...userData,
+            [spotifyUserId]: {
+              playlists: {
+                ...userData[spotifyUserId].playlists,
+                [playlist.channelId]: spotifyPlaylistId,
+              },
+            },
+          })
+        );
+      } catch (e) {
+        logger.error(
+          `Error creating playlist for Spotify user ${spotifyUserId}: ${JSON.stringify(
+            e
+          )}`
+        );
+        return Promise.reject(e);
+      }
+    }
+    return Promise.resolve();
+  };
+
+async function updateChannelPlaylist(
+  playlist: Playlist,
+  channel: Discord.Message["channel"]
+): Promise<void> {
   const subscriptions = store.get<Subscription.Collection>(
     Constants.DataStore.Keys.subscriptions
   );
-  const channelSubs = subscriptions[playlist.channelId];
+  const channelSubs = subscriptions[channel.id] || [];
+  logger.info("subscribed to this channel playlist: ", channelSubs.join(", "));
 
-  for (const userId of channelSubs) {
-    try {
-      await updateChannelPlaylistForUser(userId, playlist);
-    } catch (e) {
-      logger.warn(
-        `Trouble updating one or more user playlists: ${JSON.stringify(e)}`
-      );
+  if (channelSubs) {
+    for (const spotifyUserId of channelSubs) {
+      await updateChannelPlaylistForUser(spotifyUserId, playlist, channel);
     }
+  } else {
+    return Promise.reject("No one is subscribed to this channel");
   }
 
   return Promise.resolve();
 }
 
 async function updateChannelPlaylistForUser(
-  userId: SpotifyUser.Id,
-  playlist: Playlist
+  spotifyUserId: SpotifyUser.Id,
+  playlist: Playlist,
+  channel: Discord.Message["channel"]
 ): Promise<void> {
+  // Authenticate as the user
+  try {
+    await authenticateAsUser(spotifyUserId);
+  } catch (e) {
+    logger.error(
+      `Error authenticating as Spotify user ${spotifyUserId}: ${JSON.stringify(
+        e
+      )}`
+    );
+    return Promise.reject(
+      `updateChannelPlaylist - Failed to authenticate Spotify user ${spotifyUserId}.`
+    );
+  }
+
   const userDataStore =
     store.get<UserData.Collection>(Constants.DataStore.Keys.userData) || {};
 
-  function userPlaylists(): PlaylistCollection {
-    let userData = userDataStore[userId];
-
-    if (!userData) {
-      userData = userDataStore[userId] = {};
-    }
-
-    if (!userData.playlists) {
-      userData.playlists = {};
-    }
-
-    return userData.playlists;
+  let _playlist = playlist;
+  // Second thing's second, check if the playlist exists at all
+  if (_.isNil(_playlist)) {
+    _playlist = playlistUtils.create(channel as Discord.TextChannel);
+    await createNewSpotifyPlaylist(userDataStore, spotifyUserId, _playlist)();
   }
 
-  function userPlaylistId(): string {
-    return userPlaylists()[playlist.channelId];
-  }
+  const makePlaylist = createNewSpotifyPlaylist(
+    userDataStore,
+    spotifyUserId,
+    _playlist
+  );
 
-  async function makeList(): Promise<void> {
-    userPlaylists()[playlist.channelId] = await createUserPlaylist(
-      userId,
-      `${playlist.channelName} - ${config.playlistName}`
-    );
-    store.set<UserData.Collection>(
-      Constants.DataStore.Keys.userData,
-      userDataStore
-    );
-    return Promise.resolve();
-  }
-
-  // Authenticate as the user
-  try {
-    await authenticateAsUser(userId);
-  } catch (e) {
-    logger.error(
-      `Error authenticating as Spotify user ${userId}: ${JSON.stringify(e)}`
-    );
-    return Promise.reject(
-      `updateChannelPlaylist - Failed to authenticate Spotify user ${userId}.`
-    );
+  const playlistId = getChannelPlaylistId(channel.id, spotifyUserId);
+  if (_.isNil(playlistId) || _.isEmpty(playlistId)) {
+    logger.error("we should never be here right?");
+    makePlaylist();
   }
 
   // Check if the last used playlist exists
   try {
-    await spotifyClient.getPlaylist(userPlaylistId());
+    await spotifyClient.getPlaylist(
+      getChannelPlaylistId(channel.id, spotifyUserId)
+    );
   } catch (e) {
     logger.warn(
-      `Trouble getting existing playlist for Spotify user ${userId}: ${JSON.stringify(
+      `Trouble getting existing playlist for Spotify user ${spotifyUserId}: ${JSON.stringify(
         e
       )}`
     );
 
     // Playlist doesn't exist, so make a new one
-    await makeList();
+    await makePlaylist();
   }
 
   // Get the tracks currently on the user's playlist
   let playlistTracksResponse;
   try {
     playlistTracksResponse = await spotifyClient.getPlaylistTracks(
-      userPlaylistId()
+      getChannelPlaylistId(channel.id, spotifyUserId)
     );
   } catch (e) {
     logger.warn(
-      `Trouble getting playlist tracks for Spotify user ${userId}: ${JSON.stringify(
+      `Trouble getting playlist tracks for Spotify user ${spotifyUserId}: ${JSON.stringify(
         e
       )}`
     );
 
     // Playlist messed up, so make a new one
-    await makeList();
+    // @kevin Sep 30 2021: Why?
+    await makePlaylist();
   }
 
   // Remove all tracks from the user's playlist
-  const tracksToRemove = playlistTracksResponse.body.items.map((item) => ({
-    uri: item.track.uri,
-  }));
+  let tracksToRemove = [];
+  if (playlistTracksResponse) {
+    tracksToRemove = playlistTracksResponse.body.items.map((item) => ({
+      uri: item.track.uri,
+    }));
+  }
   if (!_.isEmpty(tracksToRemove)) {
     try {
       await spotifyClient.removeTracksFromPlaylist(
-        userPlaylistId(),
+        getChannelPlaylistId(channel.id, spotifyUserId),
         tracksToRemove
       );
     } catch (e) {
       logger.warn(
-        `Trouble removing existing playlist tracks for Spotify user ${userId}: ${JSON.stringify(
+        `Trouble removing existing playlist tracks for Spotify user ${spotifyUserId}: ${JSON.stringify(
           e
         )}`
       );
 
       // Playlist messed up, so make a new one
-      await makeList();
+      // @kevin Sep 30 2021: Why?
+      await makePlaylist();
     }
   }
 
   // Add the channel's playlist to the user's playlist
+  logger.info(
+    "does the playlist have song URIs? ",
+    _playlist && _playlist.songUris ? _playlist.songUris.join(", ") : "No."
+  );
+  if (_playlist && _playlist.songUris && _playlist.songUris.length) {
+    channel.send(`Uploading ${_playlist.songUris.length} songs`);
+  }
   try {
-    await spotifyClient.addTracksToPlaylist(
-      userPlaylistId(),
-      playlist.songUris
-    );
+    const playlistId = getChannelPlaylistId(channel.id, spotifyUserId);
+    logger.info(playlistId, JSON.stringify(_playlist.songUris));
+    await spotifyClient.addTracksToPlaylist(playlistId, _playlist.songUris);
   } catch (e) {
     logger.error(
-      `Error adding tracks to playlist for Spotify user ${userId}: ${JSON.stringify(
-        e
-      )}`
+      `Error adding tracks to playlist for Spotify user ${spotifyUserId}: ${e}`
     );
 
     // Playlist messed up, so make a new one
-    await makeList();
+    // @kevin Sep 30 2021: Why?
+    await makePlaylist();
 
     return Promise.reject(
-      `updateChannelPlaylist - Failed to add playlist tracks from channel for Spotify user ${userId}.`
+      new Error(
+        `Unable to add to playlist. Has anything been added since the last update?`
+      )
     );
   }
 
@@ -235,4 +287,5 @@ export default {
   encodeUri,
   updateChannelPlaylistForUser,
   updateChannelPlaylist,
+  getUserPlaylists,
 };

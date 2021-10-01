@@ -5,13 +5,13 @@ import * as _ from "lodash";
 import * as moment from "moment";
 import * as auth from "../auth.json";
 import * as config from "../config.json";
-import { Commands } from "./commands";
+import { Commands, getCommand } from "./commands";
 import Constants from "./constants";
 import { store } from "./dataStore";
-import DiscordHelpers, { discordClient } from "./discord";
 import { logger } from "./logger";
 import { ChannelPlaylistCollection, Playlist } from "./types/playlist";
-import dataUtils from "./utils/dataUtils";
+import { isChannelSubscribedTo } from "./utils/dataUtils";
+import discordUtils, { discordClient } from "./utils/discordUtils";
 import playlistUtils from "./utils/playlistUtils";
 import spotifyUtils from "./utils/spotifyUtils";
 
@@ -31,27 +31,31 @@ export function main(): void {
     checkChannelListStatus();
   });
 
-  discordClient.on("message", (message) => {
+  discordClient.on("message", async (message) => {
     // Analyze each user message that comes in
     if (message.author.id !== discordClient.user.id) {
-      checkMessage(message);
+      await checkMessage(message);
     }
   });
 }
 
-export function checkMessage(message: Discord.Message): void {
+export async function checkMessage(message: Discord.Message): Promise<void> {
   const isBotMention: boolean = message.mentions.users.some(
     (user) => user.tag === discordClient.user.tag
   );
 
   if (isBotMention) {
     const [, command, ...args] = message.content.split(/\s+/);
-    const commandFn = Commands[command];
+    const commandFn = getCommand(command);
 
     // Execute the command if it exists
     if (commandFn) {
       logger.info(`Executing command: ${command}`);
-      commandFn(message, ...args);
+      try {
+        await commandFn(message, ...args);
+      } catch (e) {
+        logger.error(e);
+      }
     } else {
       logger.info(
         `Tried executing command: ${command}, but failed -- no command found in ${Commands}`
@@ -65,10 +69,37 @@ export function checkMessage(message: Discord.Message): void {
     }
   } else {
     if (message.channel instanceof Discord.TextChannel) {
+      // split command/args
+      const [command, ...args] = message.content.split(/\s+/);
+
+      if (command.charAt(0) === "!") {
+        const commandFn = getCommand(command.slice(1));
+
+        // Execute the command if it exists
+        if (commandFn) {
+          try {
+            await commandFn(message, ...args);
+          } catch (e) {
+            logger.error(e);
+          }
+        } else {
+          const errorPrefixes = Constants.Strings.CommandError.Prefixes;
+          message.channel.send(
+            `${
+              errorPrefixes[Math.floor(Math.random() * errorPrefixes.length)]
+            } ${Constants.Strings.CommandError.Response}`
+          );
+        }
+        return;
+      }
+
       // Only monitor channels that are subscribed to
-      if (dataUtils.isChannelSubscribedTo(message.channel.id)) {
+      if (isChannelSubscribedTo(message.channel.id)) {
         // Check for new tracks from users in the channel
-        DiscordHelpers.extractAndProcessTracks(message);
+        const songUris = discordUtils.extractAndProcessTracks(message);
+        if (songUris.length) {
+          logger.info(`I found some tasty tracks!\n${songUris.join(", ")}`);
+        }
       }
     } else if (message.channel instanceof Discord.DMChannel) {
       // If this is a DM, assume someone is registering a token
@@ -116,7 +147,7 @@ async function checkChannelListStatus(): Promise<void> {
 
         // Update the users playlists
         try {
-          await spotifyUtils.updateChannelPlaylist(playlist);
+          await spotifyUtils.updateChannelPlaylist(playlist, channel);
         } catch (e) {
           logger.error(
             `Error updating playlist for channel "${playlist.channelName}": `

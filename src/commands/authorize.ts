@@ -13,4 +13,5 @@ export const AuthorizeCommand: Command = (message: Discord.Message) => {
     }),
     { reply: message.author }
   );
+  return Promise.resolve();
 };

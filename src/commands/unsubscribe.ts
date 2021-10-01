@@ -5,45 +5,40 @@ import Constants from "../constants";
 import { store } from "../dataStore";
 import { SpotifyUser } from "../types/spotifyUser";
 import { Subscription } from "../types/subscription";
+import { getSpotifyUserId } from "../utils/dataUtils";
 
-export const Strings = Constants.Strings.Commands.Unsubscribe;
+export const strings = Constants.Strings.Commands.Unsubscribe;
 
 export const UnsubscribeCommand: Command = (message: Discord.Message) => {
-  const spotifyUserId = (store.get<SpotifyUser.LookupMap>(
-    Constants.DataStore.Keys.spotifyUserLookupMap
-  ) || {})[message.author.id];
+  const spotifyUserId = getSpotifyUserId(message.author.id);
 
   if (!spotifyUserId) {
-    message.channel.send(Strings.notSubscribed, { reply: message.author });
-    return;
+    message.channel.send(strings.notSubscribed, { reply: message.author });
+    return Promise.reject(`No known Spotify user ID for ${message.author.id}`);
   }
 
-  let didUnsubscribe = true;
-
-  store.mutate<Subscription.Collection>(
-    Constants.DataStore.Keys.subscriptions,
-    (collection) => {
-      collection = collection || {};
-
-      const channelId = message.channel.id;
-      let idList: SpotifyUser.Id[] = collection[channelId] || [];
-
-      if (!_.includes(idList, spotifyUserId)) {
-        message.channel.send(Strings.notSubscribed, { reply: message.author });
-
-        didUnsubscribe = false;
-        return collection;
-      }
-
-      // Remove the user's Spotify ID from the subscription list
-      idList = _.remove(idList, spotifyUserId);
-
-      collection[channelId] = idList;
-      return collection;
-    }
+  const channelId = message.channel.id;
+  const subs = store.get<Subscription.Collection>(
+    Constants.DataStore.Keys.subscriptions
   );
+  const ids: SpotifyUser.Id[] = subs[channelId] || [];
 
-  if (didUnsubscribe) {
-    message.channel.send(Strings.successResponse, { reply: message.author });
+  if (!_.includes(ids, spotifyUserId)) {
+    message.channel.send(strings.notSubscribed, { reply: message.author });
+  } else {
+    message.channel.send(strings.successResponse, { reply: message.author });
+    store.mutate<Subscription.Collection>(
+      Constants.DataStore.Keys.subscriptions,
+      (collection) => {
+        collection = collection || {};
+        return {
+          ...collection,
+          [channelId]: collection[channelId]
+            ? _.remove(collection[channelId], spotifyUserId)
+            : [],
+        };
+      }
+    );
   }
+  return Promise.resolve();
 };

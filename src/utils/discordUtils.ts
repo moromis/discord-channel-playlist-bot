@@ -1,11 +1,11 @@
 import * as Discord from "discord.js";
 import * as _ from "lodash";
-import * as config from "../config.json";
-import Constants from "./constants";
-import { store } from "./dataStore";
-import { ChannelPlaylistCollection, Playlist } from "./types/playlist";
-import playlistUtils from "./utils/playlistUtils";
-import spotifyUtils from "./utils/spotifyUtils";
+import * as config from "../../config.json";
+import Constants from "../constants";
+import { store } from "../dataStore";
+import { ChannelPlaylistCollection, Playlist } from "../types/playlist";
+import playlistUtils from "./playlistUtils";
+import spotifyUtils from "./spotifyUtils";
 
 export const SPOTIFY_URL_REGEX =
   /^(?:https?:\/\/)?open\.spotify\.com\/track\/([^?\s]+)(\?[^\s]+)?$/i;

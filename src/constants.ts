@@ -20,6 +20,8 @@ const Common = {
 };
 
 const Strings = {
+  noSubscriptions:
+    "No one is subscribed to this channel. (hint: type !s to subscribe)",
   Common,
   Commands: {
     Authorize: {
@@ -27,8 +29,7 @@ const Strings = {
         "To authorize me to manage your channel playlists, follow this link: ${authorizationUrl}\r\nPlease note that you **must** send me the authorization token you receive via a direct message.",
     },
     ForceUserPlaylistUpdate: {
-      successResponse:
-        "The latest weekly channel playlist has been published on Spotify!",
+      successResponse: "Successfully published to Spotify!",
     },
     Help: {
       generalHelp: {

@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as config from "../config.json";
+import { DataStoreShape } from "./types/dataStore";
 
 type Mutator<T> = (value: T | undefined) => T;
 
@@ -53,15 +54,15 @@ export class LocalDataStore implements DataStore {
     this.saveStore(store);
   }
 
-  private loadStore(): any {
+  private loadStore(): DataStoreShape {
     if (fs.existsSync(this.path)) {
       return JSON.parse(fs.readFileSync(this.path, { encoding: "utf-8" }));
     } else {
-      return {};
+      return {} as DataStoreShape;
     }
   }
 
-  private saveStore(store: any): void {
+  private saveStore(store: Partial<DataStoreShape>): void {
     const mkdirp = (fpath: string): void => {
       const dirname = path.dirname(fpath);
 
@@ -73,7 +74,9 @@ export class LocalDataStore implements DataStore {
     };
 
     mkdirp(this.path);
-    fs.writeFileSync(this.path, JSON.stringify(store), { encoding: "utf-8" });
+    fs.writeFileSync(this.path, JSON.stringify(store, null, 2), {
+      encoding: "utf-8",
+    });
   }
 }
 

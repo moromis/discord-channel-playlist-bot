@@ -1,4 +1,4 @@
-export interface UserAuth {
+export interface UserAuthType {
   accessToken: string;
   refreshToken: string;
   expirationDate: string;
@@ -6,6 +6,6 @@ export interface UserAuth {
 
 export namespace UserAuth {
   export interface Collection {
-    [userId: string]: UserAuth;
+    [userId: string]: UserAuthType;
   }
 }
