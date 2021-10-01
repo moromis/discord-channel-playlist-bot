@@ -20,6 +20,14 @@ const Common = {
   authInstructions: "**@Mention** me and say `authorize`",
 };
 
+const Help = {
+  generalHelp: `
+This bot allows you to subscribe to music posted to any Discord channel from Spotify. A playlist will be periodically created on your Spotify account with all of the tracks posted to this channel in that time.
+
+To get started, you will need to authorize me to manage the playlist via Spotify. To do this, ${Common.authInstructions}.`,
+  availableCommands: "Available commands:",
+};
+
 const RegisterToken = {
   missingToken: `
 Please provide a valid Spotify authorization token to be registered.
@@ -40,17 +48,7 @@ const Strings = {
   Common,
   Commands: {
     RegisterToken,
-    Authorize: {
-      successResponse:
-        "To authorize me to manage your channel playlists, follow this link: ${authorizationUrl}\r\nPlease note that you **must** send me the authorization token you receive via a direct message.",
-    },
-    Help: {
-      generalHelp: {
-        1: "This bot allows you to subscribe to music posted to any Discord channel from Spotify. A playlist will be periodically created on your Spotify account with all of the tracks posted to this channel in that time.",
-        2: `To get started, you will need to authorize me to manage the playlist via Spotify. To do this, ${Common.authInstructions}.`,
-      },
-      availableCommands: "Available commands:",
-    },
+    Help,
     Subscribe: {
       unregisteredUserId: {
         1: `You need to authorize me to manage your channel playlists via Spotify before you can subscribe. To authorize, ${Common.authInstructions}.`,

@@ -1,21 +1,22 @@
 import * as Discord from "discord.js";
 import { readFileSync } from "fs";
 import yaml from "js-yaml";
-import * as _ from "lodash";
-import Constants from "../../constants";
 import { Auth } from "../../types/auth";
 import { Command } from "../../types/command";
+import sendReply from "../../utils/discord/sendReply";
 import createAuthorizationUrl from "../../utils/spotify/createAuthorizationUrl";
 
-export const Strings = Constants.Strings.Commands.Authorize;
+const authorizeMessageTemplateFunc = (url) => `
+To authorize me to manage your channel playlists, follow this link: ${url}
+Please note that you **must** send me the authorization token you receive via a direct message.`;
 
-const AuthorizeCommand: Command = (message: Discord.Message) => {
+const AuthorizeCommand: Command = async (message: Discord.Message) => {
   const auth = <Auth>yaml.load(readFileSync("auth.yml", "utf8"));
-  message.channel.send(
-    _.template(Strings.successResponse)({
-      authorizationUrl: createAuthorizationUrl(auth.spotify.redirectUri),
-    }),
-    { reply: message.author }
+  await sendReply(
+    authorizeMessageTemplateFunc(
+      createAuthorizationUrl(auth.spotify.redirectUri)
+    ),
+    message
   );
   return Promise.resolve();
 };

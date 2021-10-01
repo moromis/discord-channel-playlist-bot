@@ -9,3 +9,5 @@ auth.yml
 config.yml
 
 *.log
+
+*.env*

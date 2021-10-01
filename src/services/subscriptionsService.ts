@@ -1,10 +1,10 @@
-import _ from "lodash";
+import { append } from "ramda";
 import Constants from "../constants";
 import { store } from "../dataStore";
 import { Subscription } from "../types/subscription";
 
 export const getSubscriptions = (): Subscription.Collection => {
-  return _.clone(
+  return (
     store.get<Subscription.Collection>(
       Constants.DataStore.Keys.subscriptions
     ) || {}
@@ -22,7 +22,7 @@ export const addSubscription = (
       return {
         ...collection,
         [channelId]: collection[channelId]
-          ? _.concat(collection[channelId], spotifyUserId)
+          ? append(spotifyUserId, collection[channelId])
           : [spotifyUserId],
       };
     }

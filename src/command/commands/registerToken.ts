@@ -6,6 +6,7 @@ import spotifyClient from "../../spotifyClient";
 import { Command } from "../../types/command";
 import { SpotifyUser } from "../../types/spotifyUser";
 import { UserAuth } from "../../types/userAuth";
+import sendReply from "../../utils/discord/sendReply";
 
 export const Strings = Constants.Strings.Commands.RegisterToken;
 
@@ -14,7 +15,7 @@ export const RegisterTokenCommand: Command = async (
   authCode: string
 ) => {
   if (!authCode) {
-    message.channel.send(Strings.missingToken, { reply: message.author });
+    await sendReply(Strings.missingToken, message);
     return Promise.reject();
   }
 
@@ -23,7 +24,7 @@ export const RegisterTokenCommand: Command = async (
   try {
     data = await spotifyClient.authorizationCodeGrant(authCode);
   } catch (e) {
-    message.channel.send(Strings.invalidToken, { reply: message.author });
+    await sendReply(Strings.invalidToken, message);
 
     console.error(e);
     return Promise.reject(e);
@@ -43,7 +44,7 @@ export const RegisterTokenCommand: Command = async (
   try {
     meResponse = await spotifyClient.getMe();
   } catch (e) {
-    message.channel.send(Strings.invalidToken, { reply: message.author });
+    await sendReply(Strings.invalidToken, message);
 
     console.error(e);
     return Promise.reject(e);
@@ -76,6 +77,6 @@ export const RegisterTokenCommand: Command = async (
     }
   );
 
-  message.channel.send(Strings.successResponse, { reply: message.author });
+  await sendReply(Strings.successResponse, message);
   return Promise.resolve();
 };

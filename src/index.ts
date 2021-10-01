@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-import * as Discord from "discord.js";
+import { DMChannel, Message, TextChannel } from "discord.js";
 import { readFileSync } from "fs";
 import * as yaml from "js-yaml";
-import _ from "lodash";
 import { DateTime } from "luxon";
+import { isEmpty } from "ramda";
 import Commands from "./command/commands";
 import getCommand from "./command/getCommand";
 import Constants from "./constants";
@@ -45,7 +45,7 @@ export function main(): void {
   });
 }
 
-export async function checkMessage(message: Discord.Message): Promise<void> {
+export async function checkMessage(message: Message): Promise<void> {
   const isBotMention: boolean = message.mentions.users.some(
     (user) => user.tag === discordClient.user.tag
   );
@@ -75,7 +75,7 @@ export async function checkMessage(message: Discord.Message): Promise<void> {
   } else {
     const [command, ...args] = message.content.split(/\s+/);
     const commandFn = getCommand(command.replaceAll("!", ""));
-    if (message.channel instanceof Discord.TextChannel) {
+    if (message.channel instanceof TextChannel) {
       if (command.charAt(0) === "!") {
         // Execute the command if it exists
         if (commandFn) {
@@ -103,7 +103,7 @@ export async function checkMessage(message: Discord.Message): Promise<void> {
           logger.info(`I found some tasty tracks!\n${songUris.join(", ")}`);
         }
       }
-    } else if (message.channel instanceof Discord.DMChannel) {
+    } else if (message.channel instanceof DMChannel) {
       if (commandFn) {
         commandFn(message, ...args);
       } else {
@@ -121,10 +121,8 @@ async function checkChannelListStatus(): Promise<void> {
   setTimeout(checkChannelListStatus, 1000 / TICKS_PER_SECOND);
 
   // Get all managed channel playlists
-  const channelPlaylistCollection = _.clone(
-    store.get<ChannelPlaylistCollection>(
-      Constants.DataStore.Keys.channelPlaylistCollection
-    ) || {}
+  const channelPlaylistCollection = store.get<ChannelPlaylistCollection>(
+    Constants.DataStore.Keys.channelPlaylistCollection
   );
   const commitPlaylistChanges = () =>
     store.set<ChannelPlaylistCollection>(
@@ -137,11 +135,11 @@ async function checkChannelListStatus(): Promise<void> {
 
     // Check if enough time has elapsed to commit this channel's playlist to each subscribed user's Spotify account
     if (playlist && checkIfUpdateRequired(playlist)) {
-      const channel = discordClient.channels.find(
-        (c) => c.id === playlist.channelId
-      ) as Discord.TextChannel;
+      const channel = (await discordClient.channels.fetch(
+        playlist.channelId
+      )) as TextChannel;
 
-      if (!_.isEmpty(playlist.songUris)) {
+      if (!isEmpty(playlist.songUris)) {
         // Update the last commit date
         channelPlaylistCollection[key].lastCommitDate = DateTime.now().toISO();
         commitPlaylistChanges();

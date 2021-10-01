@@ -1,4 +1,3 @@
-import _ from "lodash";
 import Constants from "../constants";
 import { store } from "../dataStore";
 import { SpotifyUser } from "../types/spotifyUser";
@@ -10,8 +9,8 @@ export const getSpotifyUserId = (discordId: string): string =>
   ) || {})[discordId];
 
 export function getSpotifyPlaylists(userId: string): PlaylistCollection {
-  const userDataStore = _.clone(
-    store.get<UserData.Collection>(Constants.DataStore.Keys.userData) || {}
+  const userDataStore = store.get<UserData.Collection>(
+    Constants.DataStore.Keys.userData
   );
   let userData = userDataStore[userId];
 

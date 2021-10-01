@@ -1,20 +1,16 @@
 import * as Discord from "discord.js";
-import * as _ from "lodash";
 import Constants from "../../constants";
 import { store } from "../../dataStore";
 import { Command } from "../../types/command";
 import { ChannelPlaylistCollection } from "../../types/playlist";
+import sendReply from "../../utils/discord/sendReply";
 
-export const Strings = Constants.Strings.Commands.Authorize;
-
-export const ListSongsCommand: Command = (message: Discord.Message) => {
-  const channelPlaylistCollection = _.clone(
+export const ListSongsCommand: Command = async (message: Discord.Message) => {
+  const channelPlaylistCollection =
     store.get<ChannelPlaylistCollection>(
       Constants.DataStore.Keys.channelPlaylistCollection
-    ) || {}
-  );
+    ) || {};
   const songs = channelPlaylistCollection[message.channel.id]?.songUris;
-  const userId = message.author.id;
   if (songs) {
     const links = songs
       .slice(0, 3)
@@ -22,17 +18,16 @@ export const ListSongsCommand: Command = (message: Discord.Message) => {
         (songUri) => `https://open.spotify.com/track/${songUri.split(":")[2]}`
       );
 
-    message.channel.send(
+    await sendReply(
       `Here's the ${links.length} most recent songs in the playlist.
 ${links.join("\n")}`,
-      {
-        reply: userId,
-      }
+      message
     );
   } else {
-    message.channel.send("I don't know about any songs in this channel yet.", {
-      reply: userId,
-    });
+    await sendReply(
+      "I don't know about any songs in this channel yet. (maybe try `get-historical`)",
+      message
+    );
   }
   return Promise.resolve();
 };

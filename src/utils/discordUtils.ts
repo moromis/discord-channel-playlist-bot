@@ -1,8 +1,8 @@
-import * as Discord from "discord.js";
+import { Client, Intents, Message, TextChannel } from "discord.js";
 import { readFileSync } from "fs";
 import * as yaml from "js-yaml";
-import * as _ from "lodash";
 import { DateTime } from "luxon";
+import { clone, isEmpty, uniq } from "ramda";
 import Constants from "../constants";
 import { store } from "../dataStore";
 import { Config } from "../types/config";
@@ -12,9 +12,15 @@ import createPlaylistObject from "./common/createPlaylistObject";
 export const SPOTIFY_URL_REGEX =
   /^(?:https?:\/\/)?open\.spotify\.com\/track\/([^?\s]+)(\?[^\s]+)?$/i;
 
-export const discordClient: Discord.Client = new Discord.Client();
+export const discordClient: Client = new Client({
+  intents: [
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_MESSAGES,
+    Intents.FLAGS.DIRECT_MESSAGES,
+  ],
+});
 
-function extractTracks(message: Discord.Message): string[] {
+function extractTracks(message: Message): string[] {
   // Extract are any Spotify songs in this message
   return message.content
     .split(/\s+/)
@@ -29,18 +35,12 @@ function extractTracks(message: Discord.Message): string[] {
     }, []);
 }
 
-function extractAndProcessTracks(message: Discord.Message): string[] {
-  return processTracks(
-    message.channel as Discord.TextChannel,
-    extractTracks(message)
-  );
+function extractAndProcessTracks(message: Message): string[] {
+  return processTracks(message.channel as TextChannel, extractTracks(message));
 }
 
-function processTracks(
-  channel: Discord.TextChannel,
-  trackUris: string[]
-): string[] {
-  if (!_.isEmpty(trackUris)) {
+function processTracks(channel: TextChannel, trackUris: string[]): string[] {
+  if (!isEmpty(trackUris)) {
     const channelPlaylistCollection =
       store.get<ChannelPlaylistCollection>(
         Constants.DataStore.Keys.channelPlaylistCollection
@@ -49,8 +49,8 @@ function processTracks(
       channelPlaylistCollection[channel.id] || createPlaylistObject(channel);
 
     // Add all Spotify URIs from the message to the playlist
-    const oldUris = _.clone(channelPlaylist.songUris);
-    channelPlaylist.songUris = _.uniq([
+    const oldUris = clone(channelPlaylist.songUris);
+    channelPlaylist.songUris = uniq([
       ...oldUris,
       ...trackUris.map((uri) => `spotify:track:${uri}`),
     ]);

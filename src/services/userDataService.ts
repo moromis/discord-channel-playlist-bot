@@ -1,15 +1,15 @@
-import * as _ from "lodash";
+import { path } from "ramda";
 import Constants from "../constants";
 import { store } from "../dataStore";
 import { PlaylistCollection, UserData } from "../types/userData";
 
 export const getUserData = (): UserData.Collection => {
-  return _.clone(
+  return (
     store.get<UserData.Collection>(Constants.DataStore.Keys.userData) || {}
   );
 };
 
 export function getUserPlaylists(spotifyUserId: string): PlaylistCollection {
   const userDataStore = getUserData();
-  return _.get(userDataStore, [spotifyUserId, "playlists"], {});
+  return path([spotifyUserId, "playlists"], userDataStore) || {};
 }

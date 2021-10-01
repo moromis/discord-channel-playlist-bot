@@ -1,5 +1,5 @@
-import * as Discord from "discord.js";
-import * as _ from "lodash";
+import { Message, TextChannel } from "discord.js";
+import { isEmpty, isNil } from "ramda";
 import Constants from "../constants";
 import { store } from "../dataStore";
 import spotifyClient from "../spotifyClient";
@@ -14,7 +14,7 @@ import createNewPlaylist from "./spotify/createNewPlaylist";
 
 async function updateChannelPlaylist(
   playlist: Playlist,
-  channel: Discord.Message["channel"]
+  channel: Message["channel"]
 ): Promise<void> {
   const subscriptions = store.get<Subscription.Collection>(
     Constants.DataStore.Keys.subscriptions
@@ -22,7 +22,7 @@ async function updateChannelPlaylist(
   const channelSubs = subscriptions[channel.id] || [];
   logger.info("subscribed to this channel playlist: ", channelSubs.join(", "));
 
-  if (channelSubs && !_.isEmpty(channelSubs)) {
+  if (channelSubs && !isEmpty(channelSubs)) {
     for (const spotifyUserId of channelSubs) {
       await updateChannelPlaylistForUser(spotifyUserId, playlist, channel);
     }
@@ -36,7 +36,7 @@ async function updateChannelPlaylist(
 async function updateChannelPlaylistForUser(
   spotifyUserId: SpotifyUser.Id,
   playlist: Playlist,
-  channel: Discord.Message["channel"]
+  channel: Message["channel"]
 ): Promise<void> {
   // Authenticate as the user
   try {
@@ -50,13 +50,13 @@ async function updateChannelPlaylistForUser(
 
   let _playlist = playlist;
   // Second thing's second, check if the playlist exists at all
-  if (_.isNil(_playlist)) {
-    _playlist = createPlaylistObject(channel as Discord.TextChannel);
+  if (isNil(_playlist)) {
+    _playlist = createPlaylistObject(channel as TextChannel);
     await createNewPlaylist(spotifyUserId, _playlist);
   }
 
   const playlistId = getChannelPlaylistId(channel.id, spotifyUserId);
-  if (_.isNil(playlistId) || _.isEmpty(playlistId)) {
+  if (isNil(playlistId) || isEmpty(playlistId)) {
     logger.error("we should never be here right?");
     await createNewPlaylist(spotifyUserId, _playlist);
   }
@@ -95,7 +95,7 @@ async function updateChannelPlaylistForUser(
       uri: item.track.uri,
     }));
   }
-  if (!_.isEmpty(tracksToRemove)) {
+  if (!isEmpty(tracksToRemove)) {
     try {
       await spotifyClient.removeTracksFromPlaylist(
         getChannelPlaylistId(channel.id, spotifyUserId),

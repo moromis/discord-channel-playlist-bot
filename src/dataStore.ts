@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as yaml from "js-yaml";
 import * as path from "path";
+import { clone, has } from "ramda";
 import { Config } from "./types/config";
 import { DataStoreShape } from "./types/dataStore";
 
@@ -33,18 +34,16 @@ export class LocalDataStore implements DataStore {
     this.saveStore(store);
   }
 
+  // returns a deeply cloned copy of the data located at the first layer
+  // path given by the passed key.
   public get<T>(key: string): T {
     const store = this.loadStore();
-
-    return store[key];
+    return clone(store[key]);
   }
 
   public has(key: string): boolean {
     const store = this.loadStore();
-
-    return Object.getOwnPropertyNames(store).some(
-      (propName) => key === propName
-    );
+    return has(key, store);
   }
 
   public remove(key: string): void {

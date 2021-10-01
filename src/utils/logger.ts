@@ -1,10 +1,10 @@
-import * as _ from "lodash";
+import { identity } from "ramda";
 
 const noLogger: Console = {
   ...console,
-  info: _.noop,
-  error: _.noop,
-  log: _.noop,
+  info: identity,
+  error: identity,
+  log: identity,
 };
 
 console.log("debug: ", !!process.env.DEBUG);
