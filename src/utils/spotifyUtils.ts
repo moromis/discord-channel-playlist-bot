@@ -96,26 +96,25 @@ const createNewSpotifyPlaylist =
   async (): Promise<void> => {
     const config = <Config>yaml.load(readFileSync("config.yml", "utf8"));
     const playlistName = `${playlist.channelName} - ${config.playlistName}`;
-    const spotifyUserData = getUserData()[spotifyUserId];
+    const prevUserData = getUserData();
     if (
-      !spotifyUserData ||
-      !(playlist.channelId in spotifyUserData[spotifyUserId])
+      !prevUserData[spotifyUserId] ||
+      !(playlist.channelId in prevUserData[spotifyUserId])
     ) {
       try {
         const response = await spotifyClient.createPlaylist(playlistName);
         const spotifyPlaylistId = response.body.id;
-        store.mutate<UserData.Collection>(
-          Constants.DataStore.Keys.userData,
-          (prevUserData) => ({
-            ...prevUserData,
-            [spotifyUserId]: {
-              playlists: {
-                ...(spotifyUserData.playlists ? spotifyUserData.playlists : {}),
-                [playlist.channelId]: spotifyPlaylistId,
-              },
+        store.set<UserData.Collection>(Constants.DataStore.Keys.userData, {
+          ...prevUserData,
+          [spotifyUserId]: {
+            playlists: {
+              ...(prevUserData[spotifyUserId]?.playlists
+                ? prevUserData[spotifyUserId].playlists
+                : {}),
+              [playlist.channelId]: spotifyPlaylistId,
             },
-          })
-        );
+          },
+        });
       } catch (e) {
         logger.error(
           `Error creating playlist for Spotify user ${spotifyUserId}: ${JSON.stringify(
