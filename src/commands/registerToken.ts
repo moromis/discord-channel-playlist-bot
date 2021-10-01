@@ -3,7 +3,7 @@ import moment from "moment";
 import { Command } from "../command";
 import Constants from "../constants";
 import { store } from "../dataStore";
-import { spotifyClient } from "../spotify";
+import spotifyClient from "../spotifyClient";
 import { SpotifyUser } from "../types/spotifyUser";
 import { UserAuth } from "../types/userAuth";
 

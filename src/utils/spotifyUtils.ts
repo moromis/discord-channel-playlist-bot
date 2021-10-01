@@ -6,7 +6,7 @@ import moment from "moment";
 import Constants, { SpotifyAuthenticationErrors } from "../constants";
 import { store } from "../dataStore";
 import { logger } from "../logger";
-import { spotifyClient } from "../spotify";
+import spotifyClient from "../spotifyClient";
 import { Config } from "../types/config";
 import { Playlist } from "../types/playlist";
 import { SpotifyUser } from "../types/spotifyUser";

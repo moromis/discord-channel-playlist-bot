@@ -21,9 +21,10 @@ export const SubscribeCommand: Command = (message: Discord.Message) => {
   }
 
   const channelId = message.channel.id;
-  const subs = store.get<Subscription.Collection>(
-    Constants.DataStore.Keys.subscriptions
-  );
+  const subs =
+    store.get<Subscription.Collection>(
+      Constants.DataStore.Keys.subscriptions
+    ) || [];
   const ids: SpotifyUser.Id[] = subs[channelId] || [];
 
   if (_.includes(ids, spotifyUserId)) {
