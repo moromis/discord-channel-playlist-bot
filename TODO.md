@@ -1,4 +1,3 @@
 - add initial setup function to initialize and default data store
-- fix subscribe not working the first time
 - add optional time in seconds arg for force-update to recrawl
 - DRY subscribe/unsubscribe

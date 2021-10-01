@@ -10,3 +10,26 @@ export const getSubscriptions = (): Subscription.Collection => {
     ) || {}
   );
 };
+
+export const addSubscription = (
+  channelId: string,
+  spotifyUserId: string
+): void => {
+  store.mutate<Subscription.Collection>(
+    Constants.DataStore.Keys.subscriptions,
+    (collection) => {
+      collection = collection || {};
+      return {
+        ...collection,
+        [channelId]: collection[channelId]
+          ? _.concat(collection[channelId], spotifyUserId)
+          : [spotifyUserId],
+      };
+    }
+  );
+};
+
+export default {
+  getSubscriptions,
+  addSubscription,
+};
