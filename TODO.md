@@ -1,0 +1,1 @@
+- add initial setup function to initialize and default data store
