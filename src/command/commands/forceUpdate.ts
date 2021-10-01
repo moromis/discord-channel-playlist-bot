@@ -8,8 +8,6 @@ import { isChannelSubscribedTo } from "../../utils/dataUtils";
 import { logger } from "../../utils/logger";
 import spotifyUtils from "../../utils/spotifyUtils";
 
-export const Strings = Constants.Strings.Commands.ForceUserPlaylistUpdate;
-
 export const ForceUserPlaylistUpdateCommand: Command = async (
   message: Discord.Message
 ) => {
@@ -34,7 +32,7 @@ export const ForceUserPlaylistUpdateCommand: Command = async (
         channelPlaylist,
         message.channel
       );
-      message.channel.send(Strings.successResponse);
+      message.channel.send(Constants.Strings.successfulPush);
     } catch (e) {
       logger.error("Error: ", e);
       message.channel.send(`Error: ${e.message ? e.message : e}`);

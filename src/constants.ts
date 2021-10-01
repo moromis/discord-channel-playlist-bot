@@ -1,7 +1,7 @@
 export enum SpotifyAuthenticationErrors {
-  UNKNOWN,
-  NOT_AUTHORIZED,
-  INVALID_TOKEN,
+  UNKNOWN = "-1",
+  NOT_AUTHORIZED = "Hasn't run authorization yet",
+  INVALID_TOKEN = "Invalid token",
 }
 
 const DataStore = {
@@ -36,15 +36,13 @@ ${Common.helpInstructions},
 const Strings = {
   noSubscriptions:
     "No one is subscribed to this channel. (hint: type !s to subscribe)",
+  successfulPush: "Successfully published to Spotify!",
   Common,
   Commands: {
     RegisterToken,
     Authorize: {
       successResponse:
         "To authorize me to manage your channel playlists, follow this link: ${authorizationUrl}\r\nPlease note that you **must** send me the authorization token you receive via a direct message.",
-    },
-    ForceUserPlaylistUpdate: {
-      successResponse: "Successfully published to Spotify!",
     },
     Help: {
       generalHelp: {

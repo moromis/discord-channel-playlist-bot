@@ -7,6 +7,7 @@ import subscriptionsService, {
 } from "../../services/subscriptionsService";
 import { Command } from "../../types/command";
 import { SpotifyUser } from "../../types/spotifyUser";
+import { logger } from "../../utils/logger";
 
 export const Strings = Constants.Strings.Commands.Subscribe;
 
@@ -26,13 +27,14 @@ export const SubscribeCommand: Command = (message: Discord.Message) => {
   const subs = getSubscriptions();
   const ids: SpotifyUser.Id[] = subs[channelId] || [];
 
-  if (_.includes(ids, spotifyUserId)) {
+  if (_.includes(ids, discordUserId)) {
     message.channel.send(Strings.alreadySubscribed, {
       reply: message.author,
     });
   } else {
+    logger.info(`New subscription: ${message.member.displayName}`);
     message.channel.send(Strings.successResponse, { reply: message.author });
-    subscriptionsService.addSubscription(channelId, discordUserId);
+    subscriptionsService.addSubscription(channelId, spotifyUserId);
   }
   return Promise.resolve();
 };

@@ -3,7 +3,7 @@
 import * as Discord from "discord.js";
 import { readFileSync } from "fs";
 import * as yaml from "js-yaml";
-import * as _ from "lodash";
+import _ from "lodash";
 import moment from "moment";
 import Commands from "./command/commands";
 import getCommand from "./command/getCommand";

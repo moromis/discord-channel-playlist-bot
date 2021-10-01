@@ -1,11 +1,16 @@
 import _ from "lodash";
 import { getSubscriptions } from "../services/subscriptionsService";
 import { getUserPlaylists } from "../services/userDataService";
+import { logger } from "./logger";
 
 export const isChannelSubscribedTo = (channelId: string): boolean => {
   const subscriptions = getSubscriptions() || {};
+  logger.info(
+    _.findKey(subscriptions, channelId),
+    !_.isEmpty(subscriptions[channelId])
+  );
   return (
-    _.findKey(subscriptions, channelId) && !_.isEmpty(subscriptions[channelId])
+    _.has(subscriptions, channelId) && !_.isEmpty(subscriptions[channelId])
   );
 };
 

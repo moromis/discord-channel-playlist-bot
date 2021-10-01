@@ -1,12 +1,17 @@
 import moment from "moment";
 import Constants, { SpotifyAuthenticationErrors } from "../../constants";
 import { store } from "../../dataStore";
+import authService from "../../services/authService";
 import spotifyClient from "../../spotifyClient";
 import { SpotifyUser } from "../../types/spotifyUser";
 import { UserAuth, UserAuthType } from "../../types/userAuth";
 import { logger } from "../logger";
 
-async function refreshAccessToken(auth: UserAuthType): Promise<void> {
+async function refreshAccessToken(auth: UserAuthType): Promise<{
+  accessToken: string;
+  refreshToken: string;
+  expirationDate: string;
+}> {
   spotifyClient.setAccessToken(auth.accessToken);
   spotifyClient.setRefreshToken(auth.refreshToken);
 
@@ -18,18 +23,17 @@ async function refreshAccessToken(auth: UserAuthType): Promise<void> {
     return Promise.reject(e);
   }
 
-  auth.accessToken = data.body.access_token;
-  auth.expirationDate = moment()
+  const accessToken = data.body.access_token;
+  const expirationDate = moment()
     .add(data.body.expires_in, "seconds")
     .toISOString();
-  return Promise.resolve();
+  const refreshToken = data.body.refresh_token;
+  return Promise.resolve({ accessToken, refreshToken, expirationDate });
 }
 
 export default async (spotifyUserId: SpotifyUser.Id): Promise<void> => {
-  const authCollection = store.get<UserAuth.Collection>(
-    Constants.DataStore.Keys.userAuthCollection
-  );
-  const record: UserAuthType = authCollection[spotifyUserId];
+  const authStore = authService.getAuthStore();
+  const record: UserAuthType = authStore[spotifyUserId];
 
   if (!record) {
     return Promise.reject(SpotifyAuthenticationErrors.NOT_AUTHORIZED);
@@ -38,13 +42,23 @@ export default async (spotifyUserId: SpotifyUser.Id): Promise<void> => {
   if (moment().isAfter(record.expirationDate)) {
     try {
       // Refresh the user's access token
-      await refreshAccessToken(record);
+      const { accessToken, refreshToken, expirationDate } =
+        await refreshAccessToken(record);
 
       // Update the store
-      store.set<UserAuth.Collection>(
+      store.mutate<UserAuth.Collection>(
         Constants.DataStore.Keys.userAuthCollection,
-        authCollection
+        (collection) => ({
+          ...collection,
+          [spotifyUserId]: {
+            accessToken,
+            refreshToken,
+            expirationDate,
+          },
+        })
       );
+      record.accessToken = accessToken;
+      record.expirationDate = expirationDate;
     } catch (_e) {
       return Promise.reject(SpotifyAuthenticationErrors.INVALID_TOKEN);
     }

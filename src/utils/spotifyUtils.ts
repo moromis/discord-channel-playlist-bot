@@ -42,13 +42,9 @@ async function updateChannelPlaylistForUser(
   try {
     await authenticateAsUser(spotifyUserId);
   } catch (e) {
-    logger.error(
-      `Error authenticating as Spotify user ${spotifyUserId}: ${JSON.stringify(
-        e
-      )}`
-    );
+    logger.error(`Error authenticating as Spotify user ${spotifyUserId}: ${e}`);
     return Promise.reject(
-      `updateChannelPlaylist - Failed to authenticate Spotify user ${spotifyUserId}.`
+      `updateChannelPlaylistForUser - Failed to authenticate Spotify user ${spotifyUserId}.`
     );
   }
 
@@ -139,6 +135,7 @@ async function updateChannelPlaylistForUser(
     const playlistId = getChannelPlaylistId(channel.id, spotifyUserId);
     logger.info(playlistId, JSON.stringify(_playlist.songUris));
     await spotifyClient.addTracksToPlaylist(playlistId, _playlist.songUris);
+    channel.send(Constants.Strings.successfulPush);
   } catch (e) {
     logger.error(
       `Error adding tracks to playlist for Spotify user ${spotifyUserId}: ${e}`
