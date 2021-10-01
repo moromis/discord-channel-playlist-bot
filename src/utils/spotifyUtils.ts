@@ -55,12 +55,10 @@ async function updateChannelPlaylistForUser(
     await createNewPlaylist(spotifyUserId, _playlist);
   }
 
-  const makePlaylist = () => createNewPlaylist(spotifyUserId, _playlist);
-
   const playlistId = getChannelPlaylistId(channel.id, spotifyUserId);
   if (_.isNil(playlistId) || _.isEmpty(playlistId)) {
     logger.error("we should never be here right?");
-    makePlaylist();
+    await createNewPlaylist(spotifyUserId, _playlist);
   }
 
   // Check if the last used playlist exists
@@ -69,14 +67,11 @@ async function updateChannelPlaylistForUser(
       getChannelPlaylistId(channel.id, spotifyUserId)
     );
   } catch (e) {
-    logger.warn(
-      `Trouble getting existing playlist for Spotify user ${spotifyUserId}: ${JSON.stringify(
+    return Promise.reject(
+      `Couldn't get playlist for Spotify user ${spotifyUserId}: ${JSON.stringify(
         e
       )}`
     );
-
-    // Playlist doesn't exist, so make a new one
-    await makePlaylist();
   }
 
   // Get the tracks currently on the user's playlist
@@ -86,15 +81,11 @@ async function updateChannelPlaylistForUser(
       getChannelPlaylistId(channel.id, spotifyUserId)
     );
   } catch (e) {
-    logger.warn(
-      `Trouble getting playlist tracks for Spotify user ${spotifyUserId}: ${JSON.stringify(
+    return Promise.reject(
+      `Couldn't get playlist tracks for Spotify user ${spotifyUserId}: ${JSON.stringify(
         e
       )}`
     );
-
-    // Playlist messed up, so make a new one
-    // @kevin Sep 30 2021: Why?
-    await makePlaylist();
   }
 
   // Remove all tracks from the user's playlist
@@ -116,35 +107,21 @@ async function updateChannelPlaylistForUser(
           e
         )}`
       );
-
-      // Playlist messed up, so make a new one
-      // @kevin Sep 30 2021: Why?
-      await makePlaylist();
     }
   }
 
   // Add the channel's playlist to the user's playlist
-  logger.info(
-    "does the playlist have song URIs? ",
-    _playlist && _playlist.songUris ? _playlist.songUris.join(", ") : "No."
-  );
   if (_playlist && _playlist.songUris && _playlist.songUris.length) {
     channel.send(`Uploading ${_playlist.songUris.length} songs`);
   }
   try {
     const playlistId = getChannelPlaylistId(channel.id, spotifyUserId);
-    logger.info(playlistId, JSON.stringify(_playlist.songUris));
     await spotifyClient.addTracksToPlaylist(playlistId, _playlist.songUris);
     channel.send(Constants.Strings.successfulPush);
   } catch (e) {
     logger.error(
       `Error adding tracks to playlist for Spotify user ${spotifyUserId}: ${e}`
     );
-
-    // Playlist messed up, so make a new one
-    // @kevin Sep 30 2021: Why?
-    await makePlaylist();
-
     return Promise.reject(
       new Error(
         `Unable to add to playlist. Has anything been added since the last update?`
