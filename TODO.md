@@ -1,3 +1,4 @@
 - add initial setup function to initialize and default data store
 - add optional time in seconds arg for force-update to recrawl
 - DRY subscribe/unsubscribe
+- auto-subscribe sometimes, based on intent?
