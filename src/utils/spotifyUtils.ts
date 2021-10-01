@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { readFileSync } from "fs";
 import * as yaml from "js-yaml";
 import * as _ from "lodash";
-import * as moment from "moment";
+import moment from "moment";
 import Constants, { SpotifyAuthenticationErrors } from "../constants";
 import { store } from "../dataStore";
 import { logger } from "../logger";

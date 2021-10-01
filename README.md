@@ -14,21 +14,21 @@ You must setup a Discord bot on your account. You must also create a Spotify dev
 
 #### Setup a Discord bot on your Discord account
 
-You must setup a Discord bot on your account. If you're unfamiliar with this process, a guide can be found [here](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token). Once you've setup the bot, you must set the `discord.token` value in your [`auth.json` file](#authjson) with the token for the bot you created.
+You must setup a Discord bot on your account. If you're unfamiliar with this process, a guide can be found [here](https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token). Once you've setup the bot, you must set the `discord.token` value in your [`auth.yml` file](#authyml) with the token for the bot you created.
 
 #### Setup a Spotify Developer app on your Spotify account
 
-You must create a Spotify developer app to gain access to the Spotify API. Simply go to the [Spotify for Developers dashboard](https://developer.spotify.com/dashboard/applications), sign in, and click the button to create a new app. Copy the client ID and client secret to the `spotify.clientId` and `spotify.clientSecret` values respectively in your [`auth.json` file](#authjson).
+You must create a Spotify developer app to gain access to the Spotify API. Simply go to the [Spotify for Developers dashboard](https://developer.spotify.com/dashboard/applications), sign in, and click the button to create a new app. Copy the client ID and client secret to the `spotify.clientId` and `spotify.clientSecret` values respectively in your [`auth.yml` file](#authyml).
 
-Once created, click the app, and click the `Edit Settings` button. From there you should see an input field to add a `Redirect URI`. Add and save your redirect URI here, as well as to your [`auth.json` file](#authjson) as `spotify.redirectUri`. For more information about redirect URIs, see the [authorization](#authorization) section.
+Once created, click the app, and click the `Edit Settings` button. From there you should see an input field to add a `Redirect URI`. Add and save your redirect URI here, as well as to your [`auth.yml` file](#authyml) as `spotify.redirectUri`. For more information about redirect URIs, see the [authorization](#authorization) section.
 
 ### Configuration
 
-There are two files that can be configured for the bot, `auth.json` and `config.yml`.
+There are two files that can be configured for the bot, `auth.yml` and `config.yml`.
 
-#### `auth.json`
+#### `auth.yml`
 
-This file is required for your bot to work. Rename the `auth.placeholder.json` file that comes with the project to `auth.json` and replace the placeholder values with the Discord token and Spotify client credentials from the [prerequisite](#prerequisites) step above.
+This file is required for your bot to work. Rename the `auth.placeholder.json` file that comes with the project to `auth.yml` and replace the placeholder values with the Discord token and Spotify client credentials from the [prerequisite](#prerequisites) step above.
 
 Here's an example configuration. Please note that these values must be replaced with your own valid configuration values:
 

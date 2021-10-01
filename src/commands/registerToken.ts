@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import * as moment from "moment";
+import moment from "moment";
 import { Command } from "../command";
 import Constants from "../constants";
 import { store } from "../dataStore";

@@ -5,7 +5,7 @@ node_modules/
 data/
 dist/
 
-auth.json
+auth.yml
 config.yml
 
 *.log

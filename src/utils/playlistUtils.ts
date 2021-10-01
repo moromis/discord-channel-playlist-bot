@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
 import { readFileSync } from "fs";
 import * as yaml from "js-yaml";
-import * as moment from "moment";
+import moment from "moment";
 import { Config } from "../types/config";
 import { Playlist } from "../types/playlist";
 

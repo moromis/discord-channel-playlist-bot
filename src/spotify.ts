@@ -1,8 +1,13 @@
-import * as SpotifyWebApi from "spotify-web-api-node";
-import * as auth from "../auth.json";
+import { readFileSync } from "fs";
+import * as yaml from "js-yaml";
+import SpotifyWebApi from "spotify-web-api-node";
+import { Auth } from "./types/auth";
 
-export const spotifyClient = new SpotifyWebApi({
-  clientId: auth.spotify.clientId,
-  clientSecret: auth.spotify.clientSecret,
-  redirectUri: auth.spotify.redirectUri,
-});
+export const spotifyClient = (() => {
+  const auth = <Auth>yaml.load(readFileSync("auth.yml", "utf8"));
+  return new SpotifyWebApi({
+    clientId: auth.spotify.clientId,
+    clientSecret: auth.spotify.clientSecret,
+    redirectUri: auth.spotify.redirectUri,
+  });
+})();

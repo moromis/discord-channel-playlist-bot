@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import * as yaml from "js-yaml";
 import * as path from "path";
-import constants from "./constants";
 import { Config } from "./types/config";
 import { DataStoreShape } from "./types/dataStore";
 
@@ -83,10 +82,6 @@ export class LocalDataStore implements DataStore {
 }
 
 export const store: DataStore = (() => {
-  // TODO: fix
-  if (yaml) {
-    const config = <Config>yaml.load(fs.readFileSync("config.yml", "utf8"));
-    return new LocalDataStore(config.dataStoreLocation);
-  }
-  return new LocalDataStore(constants.DataStore.defaultStoreLocation);
+  const config = <Config>yaml.load(fs.readFileSync("config.yml", "utf8"));
+  return new LocalDataStore(config.dataStoreLocation);
 })();
