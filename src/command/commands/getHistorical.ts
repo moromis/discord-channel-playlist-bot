@@ -9,7 +9,7 @@ const getHistorical: Command = async (message: Discord.Message) => {
   discordChannel.send("Finding tasty tracks from the past...");
   try {
     const messages = await discordChannel.fetchMessages({ limit: 100 });
-    _.compact(Object.values(messages)).forEach((m) =>
+    _.compact(Array.from(messages.values())).forEach((m) =>
       discordUtils.extractAndProcessTracks(m)
     );
   } catch (e) {
