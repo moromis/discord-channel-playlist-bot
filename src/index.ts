@@ -5,16 +5,17 @@ import { readFileSync } from "fs";
 import * as yaml from "js-yaml";
 import * as _ from "lodash";
 import moment from "moment";
-import { Commands, getCommand } from "./commands";
+import Commands from "./command/commands";
+import getCommand from "./command/getCommand";
 import Constants from "./constants";
 import { store } from "./dataStore";
 import { logger } from "./logger";
 import { Auth } from "./types/auth";
 import { Config } from "./types/config";
 import { ChannelPlaylistCollection, Playlist } from "./types/playlist";
+import playlistUtils from "./utils/baseUtils";
 import { isChannelSubscribedTo } from "./utils/dataUtils";
 import discordUtils, { discordClient } from "./utils/discordUtils";
-import playlistUtils from "./utils/playlistUtils";
 import spotifyUtils from "./utils/spotifyUtils";
 
 // How many times the server should check for playlist updates, in seconds
@@ -62,7 +63,7 @@ export async function checkMessage(message: Discord.Message): Promise<void> {
       }
     } else {
       logger.info(
-        `Tried executing command: ${command}, but failed -- no command found in ${Commands}`
+        `Tried executing command: ${command}, but failed -- no command found (try \`!help\`)`
       );
       const errorPrefixes = Constants.Strings.CommandError.Prefixes;
       message.channel.send(

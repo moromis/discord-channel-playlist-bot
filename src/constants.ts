@@ -20,11 +20,25 @@ const Common = {
   authInstructions: "**@Mention** me and say `authorize`",
 };
 
+const RegisterToken = {
+  missingToken: `
+Please provide a valid Spotify authorization token to be registered.
+${Common.helpInstructions}
+  `,
+  invalidToken: `
+Uh oh... your token appears to be invalid. To receive a valid token, ${Common.authInstructions}.
+${Common.helpInstructions},
+  `,
+  successResponse:
+    "You're all set! You can now **@Mention** me in any channel and say `subscribe` to have me manage a weekly playlist for that channel.",
+};
+
 const Strings = {
   noSubscriptions:
     "No one is subscribed to this channel. (hint: type !s to subscribe)",
   Common,
   Commands: {
+    RegisterToken,
     Authorize: {
       successResponse:
         "To authorize me to manage your channel playlists, follow this link: ${authorizationUrl}\r\nPlease note that you **must** send me the authorization token you receive via a direct message.",
@@ -38,18 +52,6 @@ const Strings = {
         2: `To get started, you will need to authorize me to manage the playlist via Spotify. To do this, ${Common.authInstructions}.`,
       },
       availableCommands: "Available commands:",
-    },
-    RegisterToken: {
-      missingToken: {
-        1: "Please provide a valid Spotify authorization token to be registered.",
-        2: Common.helpInstructions,
-      },
-      invalidToken: {
-        1: `Uh oh... your token appears to be invalid. To receive a valid token, ${Common.authInstructions}.`,
-        2: Common.helpInstructions,
-      },
-      successResponse:
-        "You're all set! You can now **@Mention** me in any channel and say `subscribe` to have me manage a weekly playlist for that channel.",
     },
     Subscribe: {
       unregisteredUserId: {

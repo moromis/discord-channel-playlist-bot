@@ -1,11 +1,11 @@
 import * as Discord from "discord.js";
 import moment from "moment";
-import { Command } from "../command";
-import Constants from "../constants";
-import { store } from "../dataStore";
-import spotifyClient from "../spotifyClient";
-import { SpotifyUser } from "../types/spotifyUser";
-import { UserAuth } from "../types/userAuth";
+import Constants from "../../constants";
+import { store } from "../../dataStore";
+import spotifyClient from "../../spotifyClient";
+import { Command } from "../../types/command";
+import { SpotifyUser } from "../../types/spotifyUser";
+import { UserAuth } from "../../types/userAuth";
 
 export const Strings = Constants.Strings.Commands.RegisterToken;
 
@@ -14,10 +14,7 @@ export const RegisterTokenCommand: Command = async (
   authCode: string
 ) => {
   if (!authCode) {
-    message.channel.send(
-      `${Strings.missingToken[1]}\r\n${Strings.missingToken[2]}`,
-      { reply: message.author }
-    );
+    message.channel.send(Strings.missingToken, { reply: message.author });
     return Promise.reject();
   }
 
@@ -26,10 +23,7 @@ export const RegisterTokenCommand: Command = async (
   try {
     data = await spotifyClient.authorizationCodeGrant(authCode);
   } catch (e) {
-    message.channel.send(
-      `${Strings.invalidToken[1]}\r\n${Strings.invalidToken[2]}`,
-      { reply: message.author }
-    );
+    message.channel.send(Strings.invalidToken, { reply: message.author });
 
     console.error(e);
     return Promise.reject(e);
@@ -49,10 +43,7 @@ export const RegisterTokenCommand: Command = async (
   try {
     meResponse = await spotifyClient.getMe();
   } catch (e) {
-    message.channel.send(
-      `${Strings.invalidToken[1]}\r\n${Strings.invalidToken[2]}`,
-      { reply: message.author }
-    );
+    message.channel.send(Strings.invalidToken, { reply: message.author });
 
     console.error(e);
     return Promise.reject(e);

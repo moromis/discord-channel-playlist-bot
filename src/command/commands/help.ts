@@ -1,8 +1,8 @@
 import * as Discord from "discord.js";
 import * as _ from "lodash";
-import { Command } from "../command";
-import { Commands } from "../commands";
-import Constants from "../constants";
+import Commands from ".";
+import Constants from "../../constants";
+import { Command } from "../../types/command";
 
 export const Strings = Constants.Strings.Commands.Help;
 

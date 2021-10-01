@@ -6,8 +6,7 @@ import Constants from "../constants";
 import { store } from "../dataStore";
 import { Config } from "../types/config";
 import { ChannelPlaylistCollection, Playlist } from "../types/playlist";
-import playlistUtils from "./playlistUtils";
-import spotifyUtils from "./spotifyUtils";
+import playlistUtils from "./baseUtils";
 
 export const SPOTIFY_URL_REGEX =
   /^(?:https?:\/\/)?open\.spotify\.com\/track\/([^?\s]+)(\?[^\s]+)?$/i;
@@ -50,7 +49,7 @@ function processTracks(
 
     // Add all Spotify URIs from the message to the playlist
     channelPlaylist.songUris.push(
-      ...trackUris.map((uri) => spotifyUtils.encodeUri(uri))
+      ...trackUris.map((uri) => `spotify:track:${uri}`)
     );
     channelPlaylist.lastUpdateDate = new Date().toISOString();
 

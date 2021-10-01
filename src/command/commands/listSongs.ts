@@ -1,9 +1,9 @@
 import * as Discord from "discord.js";
 import * as _ from "lodash";
-import { Command } from "../command";
-import Constants from "../constants";
-import { store } from "../dataStore";
-import { ChannelPlaylistCollection } from "../types/playlist";
+import Constants from "../../constants";
+import { store } from "../../dataStore";
+import { Command } from "../../types/command";
+import { ChannelPlaylistCollection } from "../../types/playlist";
 
 export const Strings = Constants.Strings.Commands.Authorize;
 

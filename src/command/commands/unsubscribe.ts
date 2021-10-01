@@ -1,11 +1,11 @@
 import * as Discord from "discord.js";
 import * as _ from "lodash";
-import { Command } from "../command";
-import Constants from "../constants";
-import { store } from "../dataStore";
-import { SpotifyUser } from "../types/spotifyUser";
-import { Subscription } from "../types/subscription";
-import { getSpotifyUserId } from "../utils/dataUtils";
+import Constants from "../../constants";
+import { store } from "../../dataStore";
+import { getSpotifyUserId } from "../../services/spotifyService";
+import { Command } from "../../types/command";
+import { SpotifyUser } from "../../types/spotifyUser";
+import { Subscription } from "../../types/subscription";
 
 export const strings = Constants.Strings.Commands.Unsubscribe;
 

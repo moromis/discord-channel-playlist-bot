@@ -1,10 +1,10 @@
 import * as Discord from "discord.js";
 import * as _ from "lodash";
-import { Command } from "../command";
-import Constants from "../constants";
-import { store } from "../dataStore";
-import { UserData } from "../types/userData";
-import { getSpotifyUserId } from "../utils/dataUtils";
+import Constants from "../../constants";
+import { store } from "../../dataStore";
+import { getSpotifyUserId } from "../../services/spotifyService";
+import { Command } from "../../types/command";
+import { UserData } from "../../types/userData";
 
 export const Strings = Constants.Strings.Commands.Authorize;
 
@@ -19,7 +19,7 @@ export const ListPlaylistCommand: Command = (message: Discord.Message) => {
   const playlists = userData[spotifyUserId]?.playlists;
   if (playlists && playlists[channelId]) {
     message.channel.send(
-      `Looks like you have a playlist. Here it is:\nhttps://open.spotify.com/playlist/${
+      `Looks like you have a playlist for this channel. Here it is:\nhttps://open.spotify.com/playlist/${
         playlists[message.channel.id]
       }`,
       {

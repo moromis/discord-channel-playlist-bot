@@ -1,13 +1,13 @@
 import * as Discord from "discord.js";
 import * as _ from "lodash";
-import { Command } from "../command";
-import Constants from "../constants";
-import { store } from "../dataStore";
-import { logger } from "../logger";
-import { ChannelPlaylistCollection, Playlist } from "../types/playlist";
-import { Subscription } from "../types/subscription";
-import playlistUtils from "../utils/playlistUtils";
-import spotifyUtils from "../utils/spotifyUtils";
+import Constants from "../../constants";
+import { store } from "../../dataStore";
+import { logger } from "../../logger";
+import { Command } from "../../types/command";
+import { ChannelPlaylistCollection, Playlist } from "../../types/playlist";
+import { Subscription } from "../../types/subscription";
+import playlistUtils from "../../utils/baseUtils";
+import spotifyUtils from "../../utils/spotifyUtils";
 
 export const Strings = Constants.Strings.Commands.ForceUserPlaylistUpdate;
 
@@ -63,4 +63,5 @@ export const ForceUserPlaylistUpdateCommand: Command = async (
     );
     ForceUserPlaylistUpdateCommand(message);
   }
+  return Promise.resolve();
 };

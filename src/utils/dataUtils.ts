@@ -1,37 +1,15 @@
-import * as _ from "lodash";
-import Constants from "../constants";
-import { store } from "../dataStore";
-import { SpotifyUser } from "../types/spotifyUser";
-import { Subscription } from "../types/subscription";
-import { UserData } from "../types/userData";
-
-export const getSpotifyUserId = (id: string): string =>
-  (store.get<SpotifyUser.LookupMap>(
-    Constants.DataStore.Keys.spotifyUserLookupMap
-  ) || {})[id];
+import { getSubscriptions } from "../services/subscriptionsService";
+import { getUserPlaylists } from "../services/userDataService";
 
 export const isChannelSubscribedTo = (channelId: string): boolean => {
-  const subscriptions = store.get<Subscription.Collection>(
-    Constants.DataStore.Keys.subscriptions
-  );
-
+  const subscriptions = getSubscriptions();
   return subscriptions ? Object.keys(subscriptions).includes(channelId) : false;
-};
-
-export const getUserData = (): UserData.Collection => {
-  return _.clone(
-    store.get<UserData.Collection>(Constants.DataStore.Keys.userData) || {}
-  );
 };
 
 export const getChannelPlaylistId = (
   channelId: string,
   spotifyUserId: string
-): string => {
-  const userData = getUserData();
-  const playlists = userData[spotifyUserId]?.playlists;
-  if (playlists) {
-    return playlists[channelId];
-  }
-  return "";
+): string | null => {
+  const playlists = getUserPlaylists(spotifyUserId);
+  return playlists?.[channelId] || null;
 };
