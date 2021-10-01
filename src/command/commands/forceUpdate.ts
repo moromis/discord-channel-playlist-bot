@@ -32,7 +32,6 @@ export const ForceUserPlaylistUpdateCommand: Command = async (
         channelPlaylist,
         message.channel
       );
-      message.channel.send(Constants.Strings.successfulPush);
     } catch (e) {
       logger.error("Error: ", e);
       message.channel.send(`Error: ${e.message ? e.message : e}`);

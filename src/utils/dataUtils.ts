@@ -6,7 +6,7 @@ import { logger } from "./logger";
 export const isChannelSubscribedTo = (channelId: string): boolean => {
   const subscriptions = getSubscriptions() || {};
   logger.info(
-    _.findKey(subscriptions, channelId),
+    _.has(subscriptions, channelId),
     !_.isEmpty(subscriptions[channelId])
   );
   return (
