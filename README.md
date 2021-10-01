@@ -32,17 +32,13 @@ This file is required for your bot to work. Rename the `auth.placeholder.json` f
 
 Here's an example configuration. Please note that these values must be replaced with your own valid configuration values:
 
-```json
-{
-  "discord": {
-    "token": "h7ghYch9MgGOm.QfhlP_WqbzaA829SXiUT450JjczF6yVj68K2FoFSn3agHt"
-  },
-  "spotify": {
-    "clientId": "0c06ab5e9f03ecc46e9756e27db05b7a",
-    "clientSecret": "da7d9799e442ae4dba268cc73f0843ce",
-    "redirectUri": "https://js.do/code/231611"
-  }
-}
+```yaml
+discord:
+  token: "ODkzMTUxNzcyNjExMzM0MjY3.YVXSaA.FWWndBpoBDcPev5CFjp7bCzl0Qs"
+spotify:
+  clientId: "c5498223bccb4aaaa889c81259eac0b3"
+  clientSecret: "44f426cfffffff45999498f1040e3bdc"
+  redirectUri: "https://js.do/code/231611"
 ```
 
 #### `config.yml`
