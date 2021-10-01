@@ -47,7 +47,7 @@ Here's an example configuration. Please note that these values must be replaced 
 
 #### `config.json`
 
-This file contains configurable values that change the behavior of the bot.
+This file contains configurable values that change the behavior of the bot. Rename the `config.placeholder.json` file that comes with the project to `config.json` and replace the placeholder values if you'd like to.
 
 ##### Playlist behavior
 
