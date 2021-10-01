@@ -22,7 +22,7 @@ async function updateChannelPlaylist(
   const channelSubs = subscriptions[channel.id] || [];
   logger.info("subscribed to this channel playlist: ", channelSubs.join(", "));
 
-  if (channelSubs) {
+  if (channelSubs && !_.isEmpty(channelSubs)) {
     for (const spotifyUserId of channelSubs) {
       await updateChannelPlaylistForUser(spotifyUserId, playlist, channel);
     }

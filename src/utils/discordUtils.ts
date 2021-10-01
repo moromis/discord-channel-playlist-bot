@@ -48,9 +48,11 @@ function processTracks(
       channelPlaylistCollection[channel.id] || createPlaylistObject(channel);
 
     // Add all Spotify URIs from the message to the playlist
-    channelPlaylist.songUris.push(
-      ...trackUris.map((uri) => `spotify:track:${uri}`)
-    );
+    const oldUris = _.clone(channelPlaylist.songUris);
+    channelPlaylist.songUris = _.uniq([
+      ...oldUris,
+      ...trackUris.map((uri) => `spotify:track:${uri}`),
+    ]);
     channelPlaylist.lastUpdateDate = new Date().toISOString();
 
     // Update the collection

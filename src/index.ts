@@ -160,7 +160,7 @@ async function checkChannelListStatus(): Promise<void> {
           logger.error(
             `Error updating playlist for channel "${playlist.channelName}": `
           );
-          logger.error(e);
+          channel.send(e);
         }
       }
 

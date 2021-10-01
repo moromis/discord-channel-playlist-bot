@@ -27,7 +27,7 @@ export const SubscribeCommand: Command = (message: Discord.Message) => {
   const subs = getSubscriptions();
   const ids: SpotifyUser.Id[] = subs[channelId] || [];
 
-  if (_.includes(ids, discordUserId)) {
+  if (_.includes(ids, spotifyUserId)) {
     message.channel.send(Strings.alreadySubscribed, {
       reply: message.author,
     });
