@@ -1,5 +1,5 @@
-import { logger } from "../logger";
 import { Command } from "../types/command";
+import { logger } from "../utils/logger";
 import Commands from "./commands";
 
 const getCommand = (commandName: string): Command | null => {

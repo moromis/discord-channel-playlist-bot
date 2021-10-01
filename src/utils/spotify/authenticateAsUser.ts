@@ -1,10 +1,10 @@
 import moment from "moment";
 import Constants, { SpotifyAuthenticationErrors } from "../../constants";
 import { store } from "../../dataStore";
-import { logger } from "../../logger";
 import spotifyClient from "../../spotifyClient";
 import { SpotifyUser } from "../../types/spotifyUser";
 import { UserAuth, UserAuthType } from "../../types/userAuth";
+import { logger } from "../logger";
 
 async function refreshAccessToken(auth: UserAuthType): Promise<void> {
   spotifyClient.setAccessToken(auth.accessToken);

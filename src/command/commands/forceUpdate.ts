@@ -1,12 +1,11 @@
 import * as Discord from "discord.js";
-import * as _ from "lodash";
 import Constants from "../../constants";
 import { store } from "../../dataStore";
-import { logger } from "../../logger";
 import { Command } from "../../types/command";
 import { ChannelPlaylistCollection, Playlist } from "../../types/playlist";
-import { Subscription } from "../../types/subscription";
-import playlistUtils from "../../utils/baseUtils";
+import createPlaylistObject from "../../utils/common/createPlaylistObject";
+import { isChannelSubscribedTo } from "../../utils/dataUtils";
+import { logger } from "../../utils/logger";
 import spotifyUtils from "../../utils/spotifyUtils";
 
 export const Strings = Constants.Strings.Commands.ForceUserPlaylistUpdate;
@@ -15,10 +14,7 @@ export const ForceUserPlaylistUpdateCommand: Command = async (
   message: Discord.Message
 ) => {
   // make sure someone is subscribed.
-  const subs = store.get<Subscription.Collection>(
-    Constants.DataStore.Keys.subscriptions
-  );
-  if (_.isEmpty(subs[message.channel.id])) {
+  if (!isChannelSubscribedTo(message.channel.id)) {
     const rejectionMessage = Constants.Strings.noSubscriptions;
     message.channel.send(rejectionMessage);
     return Promise.reject(rejectionMessage);
@@ -51,7 +47,7 @@ export const ForceUserPlaylistUpdateCommand: Command = async (
     const channelPlaylistCollection = store.get<ChannelPlaylistCollection>(
       Constants.DataStore.Keys.channelPlaylistCollection
     );
-    const playlist = playlistUtils.create(
+    const playlist = createPlaylistObject(
       message.channel as Discord.TextChannel
     );
     store.set<ChannelPlaylistCollection>(

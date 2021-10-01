@@ -2,13 +2,13 @@ import { readFileSync } from "fs";
 import * as yaml from "js-yaml";
 import Constants from "../../constants";
 import { store } from "../../dataStore";
-import { logger } from "../../logger";
 import { getUserData } from "../../services/userDataService";
 import spotifyClient from "../../spotifyClient";
 import { Config } from "../../types/config";
 import { Playlist } from "../../types/playlist";
 import { SpotifyUser } from "../../types/spotifyUser";
 import { UserData } from "../../types/userData";
+import { logger } from "../logger";
 
 export default async (
   spotifyUserId: SpotifyUser.Id,

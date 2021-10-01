@@ -6,7 +6,7 @@ import Constants from "../constants";
 import { store } from "../dataStore";
 import { Config } from "../types/config";
 import { ChannelPlaylistCollection, Playlist } from "../types/playlist";
-import playlistUtils from "./baseUtils";
+import createPlaylistObject from "./common/createPlaylistObject";
 
 export const SPOTIFY_URL_REGEX =
   /^(?:https?:\/\/)?open\.spotify\.com\/track\/([^?\s]+)(\?[^\s]+)?$/i;
@@ -45,7 +45,7 @@ function processTracks(
         Constants.DataStore.Keys.channelPlaylistCollection
       ) || {};
     const channelPlaylist: Playlist =
-      channelPlaylistCollection[channel.id] || playlistUtils.create(channel);
+      channelPlaylistCollection[channel.id] || createPlaylistObject(channel);
 
     // Add all Spotify URIs from the message to the playlist
     channelPlaylist.songUris.push(

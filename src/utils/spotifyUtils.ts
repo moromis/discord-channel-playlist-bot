@@ -2,13 +2,13 @@ import * as Discord from "discord.js";
 import * as _ from "lodash";
 import Constants from "../constants";
 import { store } from "../dataStore";
-import { logger } from "../logger";
 import spotifyClient from "../spotifyClient";
 import { Playlist } from "../types/playlist";
 import { SpotifyUser } from "../types/spotifyUser";
 import { Subscription } from "../types/subscription";
-import playlistUtils from "./baseUtils";
+import createPlaylistObject from "./common/createPlaylistObject";
 import { getChannelPlaylistId } from "./dataUtils";
+import { logger } from "./logger";
 import authenticateAsUser from "./spotify/authenticateAsUser";
 import createNewPlaylist from "./spotify/createNewPlaylist";
 
@@ -27,7 +27,7 @@ async function updateChannelPlaylist(
       await updateChannelPlaylistForUser(spotifyUserId, playlist, channel);
     }
   } else {
-    return Promise.reject("No one is subscribed to this channel");
+    return Promise.reject(Constants.Strings.noSubscriptions);
   }
 
   return Promise.resolve();
@@ -55,7 +55,7 @@ async function updateChannelPlaylistForUser(
   let _playlist = playlist;
   // Second thing's second, check if the playlist exists at all
   if (_.isNil(_playlist)) {
-    _playlist = playlistUtils.create(channel as Discord.TextChannel);
+    _playlist = createPlaylistObject(channel as Discord.TextChannel);
     await createNewPlaylist(spotifyUserId, _playlist);
   }
 

@@ -9,13 +9,14 @@ import Commands from "./command/commands";
 import getCommand from "./command/getCommand";
 import Constants from "./constants";
 import { store } from "./dataStore";
-import { logger } from "./logger";
 import { Auth } from "./types/auth";
 import { Config } from "./types/config";
 import { ChannelPlaylistCollection, Playlist } from "./types/playlist";
-import playlistUtils from "./utils/baseUtils";
+import checkIfUpdateRequired from "./utils/common/checkIfUpdateRequired";
+import createPlaylistObject from "./utils/common/createPlaylistObject";
 import { isChannelSubscribedTo } from "./utils/dataUtils";
 import discordUtils, { discordClient } from "./utils/discordUtils";
+import { logger } from "./utils/logger";
 import spotifyUtils from "./utils/spotifyUtils";
 
 // How many times the server should check for playlist updates, in seconds
@@ -135,7 +136,7 @@ async function checkChannelListStatus(): Promise<void> {
     const playlist: Playlist = channelPlaylistCollection[key];
 
     // Check if enough time has elapsed to commit this channel's playlist to each subscribed user's Spotify account
-    if (playlist && playlistUtils.requiresUpdate(playlist)) {
+    if (playlist && checkIfUpdateRequired(playlist)) {
       const channel = discordClient.channels.find(
         (c) => c.id === playlist.channelId
       ) as Discord.TextChannel;
@@ -165,7 +166,7 @@ async function checkChannelListStatus(): Promise<void> {
 
       if (!config.keepOldPlaylistSongs) {
         // Re-initialize the list and remove all previous songs
-        channelPlaylistCollection[key] = playlistUtils.create(channel);
+        channelPlaylistCollection[key] = createPlaylistObject(channel);
         commitPlaylistChanges();
       }
 
