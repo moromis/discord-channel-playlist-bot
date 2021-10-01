@@ -2,6 +2,7 @@ import * as Discord from "discord.js";
 import { readFileSync } from "fs";
 import * as yaml from "js-yaml";
 import * as _ from "lodash";
+import { DateTime } from "luxon";
 import Constants from "../constants";
 import { store } from "../dataStore";
 import { Config } from "../types/config";
@@ -53,7 +54,7 @@ function processTracks(
       ...oldUris,
       ...trackUris.map((uri) => `spotify:track:${uri}`),
     ]);
-    channelPlaylist.lastUpdateDate = new Date().toISOString();
+    channelPlaylist.lastUpdateDate = DateTime.now().toISO();
 
     // Update the collection
     channelPlaylistCollection[channel.id] = channelPlaylist;

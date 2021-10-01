@@ -1,4 +1,4 @@
-import moment from "moment";
+import { DateTime } from "luxon";
 import Constants, { SpotifyAuthenticationErrors } from "../../constants";
 import { store } from "../../dataStore";
 import authService from "../../services/authService";
@@ -24,9 +24,9 @@ async function refreshAccessToken(auth: UserAuthType): Promise<{
   }
 
   const accessToken = data.body.access_token;
-  const expirationDate = moment()
-    .add(data.body.expires_in, "seconds")
-    .toISOString();
+  const expirationDate = DateTime.now()
+    .plus({ seconds: data.body.expires_in })
+    .toISO();
   const refreshToken = data.body.refresh_token;
   return Promise.resolve({ accessToken, refreshToken, expirationDate });
 }
@@ -39,7 +39,7 @@ export default async (spotifyUserId: SpotifyUser.Id): Promise<void> => {
     return Promise.reject(SpotifyAuthenticationErrors.NOT_AUTHORIZED);
   }
 
-  if (moment().isAfter(record.expirationDate)) {
+  if (DateTime.now() > DateTime.fromISO(record.expirationDate)) {
     try {
       // Refresh the user's access token
       const { accessToken, refreshToken, expirationDate } =

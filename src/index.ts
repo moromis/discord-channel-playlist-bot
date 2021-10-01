@@ -4,7 +4,7 @@ import * as Discord from "discord.js";
 import { readFileSync } from "fs";
 import * as yaml from "js-yaml";
 import _ from "lodash";
-import moment from "moment";
+import { DateTime } from "luxon";
 import Commands from "./command/commands";
 import getCommand from "./command/getCommand";
 import Constants from "./constants";
@@ -143,7 +143,7 @@ async function checkChannelListStatus(): Promise<void> {
 
       if (!_.isEmpty(playlist.songUris)) {
         // Update the last commit date
-        channelPlaylistCollection[key].lastCommitDate = moment().toISOString();
+        channelPlaylistCollection[key].lastCommitDate = DateTime.now().toISO();
         commitPlaylistChanges();
 
         // Send notification (if enabled)

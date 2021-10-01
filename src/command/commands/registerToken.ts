@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import moment from "moment";
+import { DateTime } from "luxon";
 import Constants from "../../constants";
 import { store } from "../../dataStore";
 import spotifyClient from "../../spotifyClient";
@@ -31,9 +31,9 @@ export const RegisterTokenCommand: Command = async (
 
   const accessToken: string = data.body.access_token;
   const refreshToken: string = data.body.refresh_token;
-  const expirationDate: string = moment()
-    .add(data.body.expires_in, "seconds")
-    .toISOString();
+  const expirationDate: string = DateTime.now()
+    .plus({ seconds: data.body.expires_in })
+    .toISO();
 
   // Set the access token on the API object to use it in later calls
   spotifyClient.setAccessToken(accessToken);
