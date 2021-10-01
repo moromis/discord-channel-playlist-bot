@@ -13,7 +13,7 @@ import { SpotifyUser } from "../types/spotifyUser";
 import { Subscription } from "../types/subscription";
 import { UserAuth, UserAuthType } from "../types/userAuth";
 import { PlaylistCollection, UserData } from "../types/userData";
-import { getChannelPlaylistId } from "./dataUtils";
+import { getChannelPlaylistId, getUserData } from "./dataUtils";
 import playlistUtils from "./playlistUtils";
 
 function createAuthorizationUrl(): string {
@@ -92,25 +92,25 @@ function getUserPlaylists(userId: string): PlaylistCollection {
 }
 
 const createNewSpotifyPlaylist =
-  (
-    userDataStore: UserData.Collection,
-    spotifyUserId: SpotifyUser.Id,
-    playlist: Playlist
-  ) =>
+  (spotifyUserId: SpotifyUser.Id, playlist: Playlist) =>
   async (): Promise<void> => {
     const config = <Config>yaml.load(readFileSync("config.yml", "utf8"));
     const playlistName = `${playlist.channelName} - ${config.playlistName}`;
-    if (!(playlist.channelId in userDataStore[spotifyUserId])) {
+    const spotifyUserData = getUserData()[spotifyUserId];
+    if (
+      !spotifyUserData ||
+      !(playlist.channelId in spotifyUserData[spotifyUserId])
+    ) {
       try {
         const response = await spotifyClient.createPlaylist(playlistName);
         const spotifyPlaylistId = response.body.id;
         store.mutate<UserData.Collection>(
           Constants.DataStore.Keys.userData,
-          (userData) => ({
-            ...userData,
+          (prevUserData) => ({
+            ...prevUserData,
             [spotifyUserId]: {
               playlists: {
-                ...userData[spotifyUserId].playlists,
+                ...(spotifyUserData.playlists ? spotifyUserData.playlists : {}),
                 [playlist.channelId]: spotifyPlaylistId,
               },
             },
@@ -168,21 +168,14 @@ async function updateChannelPlaylistForUser(
     );
   }
 
-  const userDataStore =
-    store.get<UserData.Collection>(Constants.DataStore.Keys.userData) || {};
-
   let _playlist = playlist;
   // Second thing's second, check if the playlist exists at all
   if (_.isNil(_playlist)) {
     _playlist = playlistUtils.create(channel as Discord.TextChannel);
-    await createNewSpotifyPlaylist(userDataStore, spotifyUserId, _playlist)();
+    await createNewSpotifyPlaylist(spotifyUserId, _playlist)();
   }
 
-  const makePlaylist = createNewSpotifyPlaylist(
-    userDataStore,
-    spotifyUserId,
-    _playlist
-  );
+  const makePlaylist = createNewSpotifyPlaylist(spotifyUserId, _playlist);
 
   const playlistId = getChannelPlaylistId(channel.id, spotifyUserId);
   if (_.isNil(playlistId) || _.isEmpty(playlistId)) {

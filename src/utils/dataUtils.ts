@@ -18,13 +18,17 @@ export const isChannelSubscribedTo = (channelId: string): boolean => {
   return subscriptions ? Object.keys(subscriptions).includes(channelId) : false;
 };
 
+export const getUserData = (): UserData.Collection => {
+  return _.clone(
+    store.get<UserData.Collection>(Constants.DataStore.Keys.userData) || {}
+  );
+};
+
 export const getChannelPlaylistId = (
   channelId: string,
   spotifyUserId: string
 ): string => {
-  const userData = _.clone(
-    store.get<UserData.Collection>(Constants.DataStore.Keys.userData) || {}
-  );
+  const userData = getUserData();
   const playlists = userData[spotifyUserId]?.playlists;
   if (playlists) {
     return playlists[channelId];
