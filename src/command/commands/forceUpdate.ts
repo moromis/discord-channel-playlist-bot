@@ -11,13 +11,17 @@ import spotifyUtils from "../../utils/spotifyUtils";
 export const ForceUserPlaylistUpdateCommand: Command = async (
   message: Discord.Message
 ) => {
+  message.channel.send("Forcing update...");
+  return doUpdate(message);
+};
+
+const doUpdate: Command = async (message: Discord.Message) => {
   // make sure someone is subscribed.
   if (!isChannelSubscribedTo(message.channel.id)) {
     const rejectionMessage = Constants.Strings.noSubscriptions;
     message.channel.send(rejectionMessage);
     return Promise.reject(rejectionMessage);
   }
-  message.channel.send("Forcing update...");
   const channelId = message.channel.id;
   const channelPlaylistCollection =
     store.get<ChannelPlaylistCollection>(
@@ -54,7 +58,7 @@ export const ForceUserPlaylistUpdateCommand: Command = async (
         [playlist.channelId]: playlist,
       }
     );
-    ForceUserPlaylistUpdateCommand(message);
+    doUpdate(message);
   }
   return Promise.resolve();
 };
