@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 
 import * as Discord from "discord.js";
+import { readFileSync } from "fs";
+import * as yaml from "js-yaml";
 import * as _ from "lodash";
 import * as moment from "moment";
 import * as auth from "../auth.json";
-import * as config from "../config.json";
 import { Commands, getCommand } from "./commands";
 import Constants from "./constants";
 import { store } from "./dataStore";
 import { logger } from "./logger";
+import { Config } from "./types/config";
 import { ChannelPlaylistCollection, Playlist } from "./types/playlist";
 import { isChannelSubscribedTo } from "./utils/dataUtils";
 import discordUtils, { discordClient } from "./utils/discordUtils";
@@ -109,6 +111,8 @@ export async function checkMessage(message: Discord.Message): Promise<void> {
 }
 
 async function checkChannelListStatus(): Promise<void> {
+  const config = <Config>yaml.load(readFileSync("config.yml", "utf8"));
+
   // Check for updates on the given tick interval
   setTimeout(checkChannelListStatus, 1000 / TICKS_PER_SECOND);
 
@@ -169,8 +173,6 @@ async function checkChannelListStatus(): Promise<void> {
 
   return Promise.resolve();
 }
-
-////
 
 // Start the bot
 main();

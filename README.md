@@ -4,7 +4,7 @@ A Discord bot that allows users to receive a weekly Spotify playlist made up of 
 
 ## How it works
 
-The bot has several commands that can be issued to it by directly mentioning the bot in a public channel or via a direct message with the bot. A user must first issue the `authorize` command to the bot. The user will be given a link to follow to authorize the bot to manage channel playlist subscriptions on their Spotify account. Once the user has messaged the resulting token back to the bot to complete authorization, they will be able to issue the `subscribe` command on any channel the bot has access to. Once subscribed, the bot will create a playlist on the user's Spotify account, and will update it with music posted to the subscribed channel every week (or whatever time period you define in [`config.json`](#configjson)).
+The bot has several commands that can be issued to it by directly mentioning the bot in a public channel or via a direct message with the bot. A user must first issue the `authorize` command to the bot. The user will be given a link to follow to authorize the bot to manage channel playlist subscriptions on their Spotify account. Once the user has messaged the resulting token back to the bot to complete authorization, they will be able to issue the `subscribe` command on any channel the bot has access to. Once subscribed, the bot will create a playlist on the user's Spotify account, and will update it with music posted to the subscribed channel every week (or whatever time period you define in [`config.yml`](#configyml)).
 
 ## Getting started
 
@@ -24,7 +24,7 @@ Once created, click the app, and click the `Edit Settings` button. From there yo
 
 ### Configuration
 
-There are two files that can be configured for the bot, `auth.json` and `config.json`.
+There are two files that can be configured for the bot, `auth.json` and `config.yml`.
 
 #### `auth.json`
 
@@ -45,9 +45,9 @@ Here's an example configuration. Please note that these values must be replaced 
 }
 ```
 
-#### `config.json`
+#### `config.yml`
 
-This file contains configurable values that change the behavior of the bot. Rename the `config.placeholder.json` file that comes with the project to `config.json` and replace the placeholder values if you'd like to.
+This file contains configurable values that change the behavior of the bot. Rename the `config.placeholder.json` file that comes with the project to `config.yml` and replace the placeholder values if you'd like to.
 
 ##### Playlist behavior
 

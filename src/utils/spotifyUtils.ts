@@ -1,11 +1,13 @@
 import * as Discord from "discord.js";
+import { readFileSync } from "fs";
+import * as yaml from "js-yaml";
 import * as _ from "lodash";
 import * as moment from "moment";
-import * as config from "../../config.json";
 import Constants, { SpotifyAuthenticationErrors } from "../constants";
 import { store } from "../dataStore";
 import { logger } from "../logger";
 import { spotifyClient } from "../spotify";
+import { Config } from "../types/config";
 import { Playlist } from "../types/playlist";
 import { SpotifyUser } from "../types/spotifyUser";
 import { Subscription } from "../types/subscription";
@@ -96,6 +98,7 @@ const createNewSpotifyPlaylist =
     playlist: Playlist
   ) =>
   async (): Promise<void> => {
+    const config = <Config>yaml.load(readFileSync("config.yml", "utf8"));
     const playlistName = `${playlist.channelName} - ${config.playlistName}`;
     if (!(playlist.channelId in userDataStore[spotifyUserId])) {
       try {

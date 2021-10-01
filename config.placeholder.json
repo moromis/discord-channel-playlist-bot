@@ -1,8 +1,0 @@
-{
-  "messageOnPlaylistChange": false,
-  "messageOnPlaylistCommit": false,
-  "keepOldPlaylistSongs": false,
-  "playlistUpdateFrequency": 604800,
-  "playlistName": "Weekly Playlist",
-  "dataStoreLocation": "data/store.json"
-}

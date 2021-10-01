@@ -1,8 +1,10 @@
 import * as Discord from "discord.js";
+import { readFileSync } from "fs";
+import * as yaml from "js-yaml";
 import * as _ from "lodash";
-import * as config from "../../config.json";
 import Constants from "../constants";
 import { store } from "../dataStore";
+import { Config } from "../types/config";
 import { ChannelPlaylistCollection, Playlist } from "../types/playlist";
 import playlistUtils from "./playlistUtils";
 import spotifyUtils from "./spotifyUtils";
@@ -59,6 +61,7 @@ function processTracks(
       channelPlaylistCollection
     );
 
+    const config = <Config>yaml.load(readFileSync("config.yml", "utf8"));
     if (config.messageOnPlaylistChange) {
       channel.send(Constants.Strings.Notifications.messageOnPlaylistChange);
     }

@@ -5,6 +5,7 @@ export enum SpotifyAuthenticationErrors {
 }
 
 const DataStore = {
+  defaultStoreLocation: "data/store.json",
   Keys: {
     channelPlaylistCollection: "channelPlaylistCollection",
     userAuthCollection: "userAuthCollection",
