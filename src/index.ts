@@ -52,8 +52,7 @@ export async function checkMessage(message: Discord.Message): Promise<void> {
 
   if (isBotMention) {
     const [, command, ...args] = message.content.split(/\s+/);
-    const commandFn = getCommand(command);
-
+    const commandFn = getCommand(command.replaceAll("!", ""));
     // Execute the command if it exists
     if (commandFn) {
       logger.info(`Executing command: ${command}`);
@@ -74,13 +73,10 @@ export async function checkMessage(message: Discord.Message): Promise<void> {
       );
     }
   } else {
+    const [command, ...args] = message.content.split(/\s+/);
+    const commandFn = getCommand(command.replaceAll("!", ""));
     if (message.channel instanceof Discord.TextChannel) {
-      // split command/args
-      const [command, ...args] = message.content.split(/\s+/);
-
       if (command.charAt(0) === "!") {
-        const commandFn = getCommand(command.slice(1));
-
         // Execute the command if it exists
         if (commandFn) {
           try {
@@ -108,8 +104,12 @@ export async function checkMessage(message: Discord.Message): Promise<void> {
         }
       }
     } else if (message.channel instanceof Discord.DMChannel) {
-      // If this is a DM, assume someone is registering a token
-      Commands["register-token"](message, message.content);
+      if (commandFn) {
+        commandFn(message, ...args);
+      } else {
+        // If this is a DM, assume someone is registering a token
+        Commands["register-token"](message, message.content);
+      }
     }
   }
 }
