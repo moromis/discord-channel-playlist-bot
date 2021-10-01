@@ -17,13 +17,14 @@ export const ListSongsCommand: Command = (message: Discord.Message) => {
   const userId = message.author.id;
   if (songs) {
     const links = songs
+      .slice(0, 3)
       .map(
         (songUri) => `https://open.spotify.com/track/${songUri.split(":")[2]}`
-      )
-      .join("\n");
+      );
+
     message.channel.send(
-      `Here's what's in the playlist.
-      ${links}`,
+      `Here's the ${links.length} most recent songs in the playlist.
+${links.join("\n")}`,
       {
         reply: userId,
       }
