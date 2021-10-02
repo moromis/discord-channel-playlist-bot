@@ -49,6 +49,8 @@ ${Common.helpInstructions},
 };
 
 const Strings = {
+  noTracks:
+    "I don't know about any songs in this channel yet. Post some Spotify links or use the `get-historical` command",
   noSubscriptions:
     "No one is subscribed to this channel. (hint: type !s to subscribe)",
   successfulPush: "Successfully published to Spotify!",

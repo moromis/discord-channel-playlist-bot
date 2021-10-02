@@ -4,7 +4,7 @@ import { store } from "../../dataStore";
 import { Command } from "../../types/command";
 import { ChannelPlaylistCollection, Playlist } from "../../types/playlist";
 import createPlaylistObject from "../../utils/common/createPlaylistObject";
-import { isChannelSubscribedTo } from "../../utils/dataUtils";
+import isChannelSubscribedTo from "../../utils/data/isChannelSubscribedTo";
 import { messageManager } from "../../utils/discord/MessageManager";
 import { logger } from "../../utils/logger";
 import spotifyUtils from "../../utils/spotifyUtils";

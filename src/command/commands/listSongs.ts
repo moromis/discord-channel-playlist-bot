@@ -24,10 +24,7 @@ ${links.join("\n")}`,
       message
     );
   } else {
-    await messageManager.reply(
-      "I don't know about any songs in this channel yet. (maybe try `get-historical`)",
-      message
-    );
+    await messageManager.reply(Constants.Strings.noTracks, message);
   }
   return Promise.resolve();
 };

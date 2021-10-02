@@ -2,7 +2,7 @@ import { DMChannel, Message } from "discord.js";
 import Commands from "../command/commands";
 import getCommand from "../command/getCommand";
 import { MENTION_REGEX } from "../constants";
-import { isChannelSubscribedTo } from "../utils/dataUtils";
+import isChannelSubscribedTo from "../utils/data/isChannelSubscribedTo";
 import { messageManager } from "../utils/discord/MessageManager";
 import discordUtils from "../utils/discordUtils";
 import { logger } from "../utils/logger";
