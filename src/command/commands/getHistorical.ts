@@ -4,43 +4,51 @@ import {
   TextBasedChannels,
 } from "discord.js";
 import { DateTime } from "luxon";
-import { flatten, last } from "ramda";
-import { compact } from "ramda-adjunct";
+import { concat, last } from "ramda";
 import { Command } from "../../types/command";
 import { messageManager } from "../../utils/discord/MessageManager";
 import discordUtils from "../../utils/discordUtils";
 import { logger } from "../../utils/logger";
 
-const getMessagesAndProcess = async (
+const getMessages = async (
   discordChannel: TextBasedChannels,
   options: ChannelLogsQueryOptions = {}
-): Promise<null | Message> => {
-  let latest: Message = null;
-  await discordChannel.messages
-    .fetch(options)
-    .then(async (messages) => {
-      latest = last(Array.from(messages.values()));
-      await Promise.all(
-        Array.from(messages.values()).map((m) =>
-          discordUtils.extractAndProcessTracks(m)
-        )
-      )
-        .catch((e) => {
-          return Promise.reject(e);
-        })
-        .then(async (res) => {
-          const results = compact(flatten(res));
-          if (results.length === 0) {
-            await messageManager.error("Nothing found.", discordChannel);
-            return Promise.reject("Nothing found");
-          }
-          return Promise.resolve();
-        });
-    })
-    .catch((e) => {
-      return Promise.reject(e);
-    });
-  return Promise.resolve(latest);
+): Promise<null | Message[]> => {
+  let results: Message[] = null;
+  await discordChannel.messages.fetch(options).then((messages) => {
+    results = Array.from(messages.values());
+  });
+  return Promise.resolve(results);
+};
+
+const getMessagesAndProcess = async (
+  discordChannel: TextBasedChannels,
+  dateString: string
+): Promise<void> => {
+  const jsDate = DateTime.fromJSDate(new Date(dateString));
+  let latestResult: Message | void = {
+    createdTimestamp: Date.now(),
+  } as Message;
+  // accumulate messages
+  let allResults = [] as Message[];
+  do {
+    const results = await getMessages(discordChannel, {
+      limit: 100,
+      ...(latestResult ? { before: latestResult.id } : {}),
+    }).catch((e) => logger.error(e));
+    allResults = concat(allResults, results);
+    latestResult = last<Message>(results);
+    logger.info("latest: ", latestResult);
+  } while (
+    latestResult &&
+    DateTime.fromISO(new Date(latestResult.createdTimestamp).toISOString()) >
+      jsDate
+  );
+  logger.info("total messages fetched: ", allResults.length);
+  await Promise.all(
+    allResults.map((m) => discordUtils.extractAndProcessTracks(m))
+  );
+  return Promise.resolve();
 };
 
 const getHistorical: Command = async (message: Message, date?: string) => {
@@ -50,28 +58,11 @@ const getHistorical: Command = async (message: Message, date?: string) => {
     "Finding tasty tracks from the past...",
     discordChannel
   );
-  if (date) {
-    // Go backwards in message history till we reach the passed date
-    const jsDate = DateTime.fromJSDate(new Date(date));
-    let latestResult: Message | void = {
-      createdTimestamp: Date.now(),
-    } as Message;
-    // TODO: wrong, don't process till we have all the messages, otherwise it updates the playlist
-    //       every time we fetch...
-    do {
-      latestResult = await getMessagesAndProcess(discordChannel, {
-        limit: 100,
-        ...(latestResult ? { before: latestResult.id } : {}),
-      }).catch((e) => logger.error(e));
-      logger.info("latest: ", latestResult);
-    } while (
-      latestResult &&
-      DateTime.fromISO(new Date(latestResult.createdTimestamp).toISOString()) >
-        jsDate
-    );
-  } else {
-    await getMessagesAndProcess(discordChannel);
-  }
+  // Go backwards in message history till we reach the date we're going till
+  await getMessagesAndProcess(
+    discordChannel,
+    date ? date : DateTime.now().minus({ days: 7 }).toISO()
+  ).catch((e) => messageManager.error(e, discordChannel));
   return Promise.resolve();
 };
 

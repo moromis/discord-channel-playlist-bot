@@ -60,12 +60,10 @@ export async function checkMessage(message: Message): Promise<void> {
       logger.info(`Executing command: ${command}`);
       await commandFn(message, ...args)
         .catch((e) => {
-          logger.error("setting all ok to false 1");
           allOk = false;
           logger.error(e);
         })
         .finally(async () => {
-          logger.error(1);
           await messageManager.cleanup(allOk, message);
         });
       return;
@@ -89,19 +87,16 @@ export async function checkMessage(message: Message): Promise<void> {
       if (commandFn) {
         await commandFn(message, ...args)
           .catch((e) => {
-            logger.error("setting all ok to false 2");
             allOk = false;
             logger.error(e);
           })
           .finally(async () => {
-            logger.error(2);
             await messageManager.cleanup(allOk, message);
           });
         return;
       } else {
         // If this is a DM, assume someone is registering a token
         Commands["register-token"](message, message.content);
-        logger.error(3);
         await messageManager.cleanup(allOk, message);
         return;
       }
@@ -113,17 +108,14 @@ export async function checkMessage(message: Message): Promise<void> {
           if (commandFn) {
             await commandFn(message, ...args)
               .catch((e) => {
-                logger.error("setting all ok to false 3");
                 allOk = false;
                 logger.error(e);
               })
               .finally(async () => {
-                logger.error(4);
                 await messageManager.cleanup(allOk, message);
               });
             return;
           } else {
-            logger.error("setting all ok to false 4");
             allOk = false;
             const errorPrefixes = Constants.Strings.CommandError.Prefixes;
             await messageManager.reply(
@@ -133,12 +125,10 @@ export async function checkMessage(message: Message): Promise<void> {
               message
             );
           }
-          logger.error(5);
           await messageManager.cleanup(allOk, message);
           return;
         }
       }
-      logger.error(6);
       await messageManager.cleanup(allOk, message);
       return;
     } else {
