@@ -1,25 +1,26 @@
-import * as Discord from "discord.js";
+import { Message, TextChannel } from "discord.js";
 import Constants from "../../constants";
 import { store } from "../../dataStore";
 import { Command } from "../../types/command";
 import { ChannelPlaylistCollection, Playlist } from "../../types/playlist";
 import createPlaylistObject from "../../utils/common/createPlaylistObject";
 import { isChannelSubscribedTo } from "../../utils/dataUtils";
+import { messageManager } from "../../utils/discord/MessageManager";
 import { logger } from "../../utils/logger";
 import spotifyUtils from "../../utils/spotifyUtils";
 
 export const ForceUserPlaylistUpdateCommand: Command = async (
-  message: Discord.Message
+  message: Message
 ) => {
-  message.channel.send("Forcing update...");
+  await messageManager.send("Forcing update...", message.channel);
   return doUpdate(message);
 };
 
-const doUpdate: Command = async (message: Discord.Message) => {
+const doUpdate: Command = async (message: Message) => {
   // make sure someone is subscribed.
   if (!isChannelSubscribedTo(message.channel.id)) {
     const rejectionMessage = Constants.Strings.noSubscriptions;
-    message.channel.send(rejectionMessage);
+    await messageManager.error(rejectionMessage, message.channel);
     return Promise.reject(rejectionMessage);
   }
   const channelId = message.channel.id;
@@ -38,7 +39,10 @@ const doUpdate: Command = async (message: Discord.Message) => {
       );
     } catch (e) {
       logger.error("Error: ", e);
-      message.channel.send(`Error: ${e.message ? e.message : e}`);
+      await messageManager.error(
+        `Error: ${e.message ? e.message : e}`,
+        message.channel
+      );
     }
   } else {
     logger.info(
@@ -48,9 +52,7 @@ const doUpdate: Command = async (message: Discord.Message) => {
     const channelPlaylistCollection = store.get<ChannelPlaylistCollection>(
       Constants.DataStore.Keys.channelPlaylistCollection
     );
-    const playlist = createPlaylistObject(
-      message.channel as Discord.TextChannel
-    );
+    const playlist = createPlaylistObject(message.channel as TextChannel);
     store.set<ChannelPlaylistCollection>(
       Constants.DataStore.Keys.channelPlaylistCollection,
       {

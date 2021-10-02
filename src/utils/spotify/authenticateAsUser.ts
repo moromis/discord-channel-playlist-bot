@@ -36,7 +36,7 @@ export default async (spotifyUserId: SpotifyUser.Id): Promise<void> => {
   const record: UserAuthType = authStore[spotifyUserId];
 
   if (!record) {
-    return Promise.reject(SpotifyAuthenticationErrors.NOT_AUTHORIZED);
+    return Promise.reject();
   }
 
   if (DateTime.now() > DateTime.fromISO(record.expirationDate)) {
@@ -52,7 +52,9 @@ export default async (spotifyUserId: SpotifyUser.Id): Promise<void> => {
           ...collection,
           [spotifyUserId]: {
             accessToken,
-            refreshToken,
+            refreshToken: refreshToken
+              ? refreshToken
+              : collection[spotifyUserId].refreshToken,
             expirationDate,
           },
         })

@@ -6,7 +6,8 @@ import spotifyClient from "../../spotifyClient";
 import { Command } from "../../types/command";
 import { SpotifyUser } from "../../types/spotifyUser";
 import { UserAuth } from "../../types/userAuth";
-import sendReply from "../../utils/discord/sendReply";
+import { messageManager } from "../../utils/discord/MessageManager";
+import { logger } from "../../utils/logger";
 
 export const Strings = Constants.Strings.Commands.RegisterToken;
 
@@ -15,7 +16,7 @@ export const RegisterTokenCommand: Command = async (
   authCode: string
 ) => {
   if (!authCode) {
-    await sendReply(Strings.missingToken, message);
+    await messageManager.reply(Strings.missingToken, message);
     return Promise.reject();
   }
 
@@ -24,9 +25,9 @@ export const RegisterTokenCommand: Command = async (
   try {
     data = await spotifyClient.authorizationCodeGrant(authCode);
   } catch (e) {
-    await sendReply(Strings.invalidToken, message);
+    await messageManager.reply(Strings.invalidToken, message);
 
-    console.error(e);
+    logger.error(e);
     return Promise.reject(e);
   }
 
@@ -44,9 +45,9 @@ export const RegisterTokenCommand: Command = async (
   try {
     meResponse = await spotifyClient.getMe();
   } catch (e) {
-    await sendReply(Strings.invalidToken, message);
+    await messageManager.error(Strings.invalidToken, message.channel);
 
-    console.error(e);
+    logger.error(e);
     return Promise.reject(e);
   }
 
@@ -77,6 +78,6 @@ export const RegisterTokenCommand: Command = async (
     }
   );
 
-  await sendReply(Strings.successResponse, message);
+  await messageManager.reply(Strings.successResponse, message);
   return Promise.resolve();
 };

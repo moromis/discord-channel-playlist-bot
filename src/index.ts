@@ -15,6 +15,7 @@ import { ChannelPlaylistCollection, Playlist } from "./types/playlist";
 import checkIfUpdateRequired from "./utils/common/checkIfUpdateRequired";
 import createPlaylistObject from "./utils/common/createPlaylistObject";
 import { isChannelSubscribedTo } from "./utils/dataUtils";
+import { messageManager } from "./utils/discord/MessageManager";
 import discordUtils, { discordClient } from "./utils/discordUtils";
 import { logger } from "./utils/logger";
 import spotifyUtils from "./utils/spotifyUtils";
@@ -46,6 +47,7 @@ export function main(): void {
 }
 
 export async function checkMessage(message: Message): Promise<void> {
+  let allOk = true;
   const isBotMention: boolean = message.mentions.users.some(
     (user) => user.tag === discordClient.user.tag
   );
@@ -56,59 +58,97 @@ export async function checkMessage(message: Message): Promise<void> {
     // Execute the command if it exists
     if (commandFn) {
       logger.info(`Executing command: ${command}`);
-      try {
-        await commandFn(message, ...args);
-      } catch (e) {
-        logger.error(e);
-      }
+      await commandFn(message, ...args)
+        .catch((e) => {
+          logger.error("setting all ok to false 1");
+          allOk = false;
+          logger.error(e);
+        })
+        .finally(async () => {
+          logger.error(1);
+          await messageManager.cleanup(allOk, message);
+        });
+      return;
     } else {
       logger.info(
         `Tried executing command: ${command}, but failed -- no command found (try \`!help\`)`
       );
       const errorPrefixes = Constants.Strings.CommandError.Prefixes;
-      message.channel.send(
+      await messageManager.error(
         `${errorPrefixes[Math.floor(Math.random() * errorPrefixes.length)]} ${
           Constants.Strings.CommandError.Response
-        }`
+        }`,
+        message.channel
       );
+      return;
     }
   } else {
     const [command, ...args] = message.content.split(/\s+/);
-    const commandFn = getCommand(command.replaceAll("!", ""));
-    if (message.channel instanceof TextChannel) {
-      if (command.charAt(0) === "!") {
-        // Execute the command if it exists
-        if (commandFn) {
-          try {
-            await commandFn(message, ...args);
-          } catch (e) {
-            logger.error(e);
-          }
-        } else {
-          const errorPrefixes = Constants.Strings.CommandError.Prefixes;
-          message.channel.send(
-            `${
-              errorPrefixes[Math.floor(Math.random() * errorPrefixes.length)]
-            } ${Constants.Strings.CommandError.Response}`
-          );
-        }
-        return;
-      }
-
-      // Only monitor channels that are subscribed to
-      if (isChannelSubscribedTo(message.channel.id)) {
-        // Check for new tracks from users in the channel
-        const songUris = discordUtils.extractAndProcessTracks(message);
-        if (songUris.length) {
-          logger.info(`I found some tasty tracks!\n${songUris.join(", ")}`);
-        }
-      }
-    } else if (message.channel instanceof DMChannel) {
+    if (message.channel instanceof DMChannel) {
+      const commandFn = getCommand(command.replaceAll("!", ""));
       if (commandFn) {
-        commandFn(message, ...args);
+        await commandFn(message, ...args)
+          .catch((e) => {
+            logger.error("setting all ok to false 2");
+            allOk = false;
+            logger.error(e);
+          })
+          .finally(async () => {
+            logger.error(2);
+            await messageManager.cleanup(allOk, message);
+          });
+        return;
       } else {
         // If this is a DM, assume someone is registering a token
         Commands["register-token"](message, message.content);
+        logger.error(3);
+        await messageManager.cleanup(allOk, message);
+        return;
+      }
+    } else if (command.startsWith("!")) {
+      const commandFn = getCommand(command.replaceAll("!", ""));
+      if (message.channel instanceof TextChannel) {
+        if (command.charAt(0) === "!") {
+          // Execute the command if it exists
+          if (commandFn) {
+            await commandFn(message, ...args)
+              .catch((e) => {
+                logger.error("setting all ok to false 3");
+                allOk = false;
+                logger.error(e);
+              })
+              .finally(async () => {
+                logger.error(4);
+                await messageManager.cleanup(allOk, message);
+              });
+            return;
+          } else {
+            logger.error("setting all ok to false 4");
+            allOk = false;
+            const errorPrefixes = Constants.Strings.CommandError.Prefixes;
+            await messageManager.reply(
+              `${
+                errorPrefixes[Math.floor(Math.random() * errorPrefixes.length)]
+              } ${Constants.Strings.CommandError.Response}`,
+              message
+            );
+          }
+          logger.error(5);
+          await messageManager.cleanup(allOk, message);
+          return;
+        }
+      }
+      logger.error(6);
+      await messageManager.cleanup(allOk, message);
+      return;
+    } else {
+      // Only monitor channels that are subscribed to
+      if (isChannelSubscribedTo(message.channel.id)) {
+        // Check for new tracks from users in the channel
+        const songUris = await discordUtils.extractAndProcessTracks(message);
+        if (songUris.length) {
+          logger.info(`I found some tasty tracks!\n${songUris.join(", ")}`);
+        }
       }
     }
   }
@@ -146,7 +186,10 @@ async function checkChannelListStatus(): Promise<void> {
 
         // Send notification (if enabled)
         if (channel && config.messageOnPlaylistCommit) {
-          channel.send(Constants.Strings.Notifications.messageOnPlaylistCommit);
+          await messageManager.send(
+            Constants.Strings.Notifications.messageOnPlaylistCommit,
+            channel
+          );
         }
 
         logger.log(`Updating playlist for "${playlist.channelName}"`);
@@ -158,7 +201,8 @@ async function checkChannelListStatus(): Promise<void> {
           logger.error(
             `Error updating playlist for channel "${playlist.channelName}": `
           );
-          channel.send(e);
+          messageManager.cleanup(false);
+          await messageManager.error(e, channel);
         }
       }
 

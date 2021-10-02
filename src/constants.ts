@@ -1,6 +1,6 @@
 export enum SpotifyAuthenticationErrors {
   UNKNOWN = "-1",
-  NOT_AUTHORIZED = "Hasn't run authorization yet",
+  NOT_AUTHORIZED = "Unable to authenticate. If you haven't authorized this app yet, please run `!authorize`",
   INVALID_TOKEN = "Invalid token",
 }
 

@@ -1,4 +1,10 @@
-import { Client, Intents, Message, TextChannel } from "discord.js";
+import {
+  Client,
+  Intents,
+  Message,
+  TextBasedChannels,
+  TextChannel,
+} from "discord.js";
 import { readFileSync } from "fs";
 import * as yaml from "js-yaml";
 import { DateTime } from "luxon";
@@ -8,6 +14,7 @@ import { store } from "../dataStore";
 import { Config } from "../types/config";
 import { ChannelPlaylistCollection, Playlist } from "../types/playlist";
 import createPlaylistObject from "./common/createPlaylistObject";
+import { messageManager } from "./discord/MessageManager";
 
 export const SPOTIFY_URL_REGEX =
   /^(?:https?:\/\/)?open\.spotify\.com\/track\/([^?\s]+)(\?[^\s]+)?$/i;
@@ -17,6 +24,8 @@ export const discordClient: Client = new Client({
     Intents.FLAGS.GUILDS,
     Intents.FLAGS.GUILD_MESSAGES,
     Intents.FLAGS.DIRECT_MESSAGES,
+    Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+    Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
   ],
 });
 
@@ -35,18 +44,23 @@ function extractTracks(message: Message): string[] {
     }, []);
 }
 
-function extractAndProcessTracks(message: Message): string[] {
-  return processTracks(message.channel as TextChannel, extractTracks(message));
+async function extractAndProcessTracks(message: Message): Promise<string[]> {
+  const results = await processTracks(message.channel, extractTracks(message));
+  return results;
 }
 
-function processTracks(channel: TextChannel, trackUris: string[]): string[] {
+async function processTracks(
+  channel: TextBasedChannels,
+  trackUris: string[]
+): Promise<string[]> {
   if (!isEmpty(trackUris)) {
     const channelPlaylistCollection =
       store.get<ChannelPlaylistCollection>(
         Constants.DataStore.Keys.channelPlaylistCollection
       ) || {};
     const channelPlaylist: Playlist =
-      channelPlaylistCollection[channel.id] || createPlaylistObject(channel);
+      channelPlaylistCollection[channel.id] ||
+      createPlaylistObject(channel as TextChannel);
 
     // Add all Spotify URIs from the message to the playlist
     const oldUris = clone(channelPlaylist.songUris);
@@ -65,7 +79,10 @@ function processTracks(channel: TextChannel, trackUris: string[]): string[] {
 
     const config = <Config>yaml.load(readFileSync("config.yml", "utf8"));
     if (config.messageOnPlaylistChange) {
-      channel.send(Constants.Strings.Notifications.messageOnPlaylistChange);
+      await messageManager.send(
+        Constants.Strings.Notifications.messageOnPlaylistChange,
+        channel
+      );
     }
   }
 

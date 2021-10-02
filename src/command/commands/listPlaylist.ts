@@ -4,7 +4,7 @@ import { store } from "../../dataStore";
 import { getSpotifyUserId } from "../../services/spotifyService";
 import { Command } from "../../types/command";
 import { UserData } from "../../types/userData";
-import sendReply from "../../utils/discord/sendReply";
+import { messageManager } from "../../utils/discord/MessageManager";
 
 export const ListPlaylistCommand: Command = async (
   message: Discord.Message
@@ -16,14 +16,17 @@ export const ListPlaylistCommand: Command = async (
   const channelId = message.channel.id;
   const playlists = userData[spotifyUserId]?.playlists;
   if (playlists && playlists[channelId]) {
-    await sendReply(
+    await messageManager.reply(
       `Looks like you have a playlist for this channel. Here it is:\nhttps://open.spotify.com/playlist/${
         playlists[message.channel.id]
       }`,
       message
     );
   } else {
-    await sendReply("You don't have a playlist for this channel yet.", message);
+    await messageManager.reply(
+      "You don't have a playlist for this channel yet.",
+      message
+    );
   }
   return Promise.resolve();
 };

@@ -6,7 +6,7 @@ import { getSpotifyUserId } from "../../services/spotifyService";
 import { Command } from "../../types/command";
 import { SpotifyUser } from "../../types/spotifyUser";
 import { Subscription } from "../../types/subscription";
-import sendReply from "../../utils/discord/sendReply";
+import { messageManager } from "../../utils/discord/MessageManager";
 
 export const strings = Constants.Strings.Commands.Unsubscribe;
 
@@ -14,7 +14,7 @@ export const UnsubscribeCommand: Command = async (message: Discord.Message) => {
   const spotifyUserId = getSpotifyUserId(message.author.id);
 
   if (!spotifyUserId) {
-    await sendReply(strings.notSubscribed, message);
+    await messageManager.reply(strings.notSubscribed, message);
     return Promise.reject(`No known Spotify user ID for ${message.author.id}`);
   }
 
@@ -25,9 +25,9 @@ export const UnsubscribeCommand: Command = async (message: Discord.Message) => {
   const ids: SpotifyUser.Id[] = subs[channelId] || [];
 
   if (!includes(spotifyUserId)(ids)) {
-    await sendReply(strings.notSubscribed, message);
+    await messageManager.reply(strings.notSubscribed, message);
   } else {
-    await sendReply(strings.successResponse, message);
+    await messageManager.reply(strings.successResponse, message);
     store.mutate<Subscription.Collection>(
       Constants.DataStore.Keys.subscriptions,
       (collection) => {

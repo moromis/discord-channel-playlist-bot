@@ -1,6 +1,6 @@
 import { Message, TextChannel } from "discord.js";
 import { isEmpty, isNil } from "ramda";
-import Constants from "../constants";
+import Constants, { SpotifyAuthenticationErrors } from "../constants";
 import { store } from "../dataStore";
 import spotifyClient from "../spotifyClient";
 import { Playlist } from "../types/playlist";
@@ -8,6 +8,7 @@ import { SpotifyUser } from "../types/spotifyUser";
 import { Subscription } from "../types/subscription";
 import createPlaylistObject from "./common/createPlaylistObject";
 import { getChannelPlaylistId } from "./dataUtils";
+import { messageManager } from "./discord/MessageManager";
 import { logger } from "./logger";
 import authenticateAsUser from "./spotify/authenticateAsUser";
 import createNewPlaylist from "./spotify/createNewPlaylist";
@@ -24,7 +25,13 @@ async function updateChannelPlaylist(
 
   if (channelSubs && !isEmpty(channelSubs)) {
     for (const spotifyUserId of channelSubs) {
-      await updateChannelPlaylistForUser(spotifyUserId, playlist, channel);
+      await updateChannelPlaylistForUser(
+        spotifyUserId,
+        playlist,
+        channel
+      ).catch((e) => {
+        return Promise.reject(e);
+      });
     }
   } else {
     return Promise.reject(Constants.Strings.noSubscriptions);
@@ -39,14 +46,10 @@ async function updateChannelPlaylistForUser(
   channel: Message["channel"]
 ): Promise<void> {
   // Authenticate as the user
-  try {
-    await authenticateAsUser(spotifyUserId);
-  } catch (e) {
+  await authenticateAsUser(spotifyUserId).catch((e) => {
     logger.error(`Error authenticating as Spotify user ${spotifyUserId}: ${e}`);
-    return Promise.reject(
-      `updateChannelPlaylistForUser - Failed to authenticate Spotify user ${spotifyUserId}.`
-    );
-  }
+    return Promise.reject(SpotifyAuthenticationErrors.NOT_AUTHORIZED);
+  });
 
   let _playlist = playlist;
   // Second thing's second, check if the playlist exists at all
@@ -107,17 +110,21 @@ async function updateChannelPlaylistForUser(
           e
         )}`
       );
+      // return Promise.reject(e);
     }
   }
 
   // Add the channel's playlist to the user's playlist
   if (_playlist && _playlist.songUris && _playlist.songUris.length) {
-    channel.send(`Uploading ${_playlist.songUris.length} songs`);
+    await messageManager.send(
+      `Uploading ${_playlist.songUris.length} song(s)`,
+      channel
+    );
   }
   try {
     const playlistId = getChannelPlaylistId(channel.id, spotifyUserId);
     await spotifyClient.addTracksToPlaylist(playlistId, _playlist.songUris);
-    channel.send(Constants.Strings.successfulPush);
+    await messageManager.send(Constants.Strings.successfulPush, channel);
   } catch (e) {
     logger.error(
       `Error adding tracks to playlist for Spotify user ${spotifyUserId}: ${e}`
