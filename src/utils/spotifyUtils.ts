@@ -1,5 +1,5 @@
 import { Message, TextChannel } from "discord.js";
-import { isEmpty, isNil } from "ramda";
+import { curry, drop, isEmpty, isNil, prepend, take } from "ramda";
 import Constants, { SpotifyAuthenticationErrors } from "../constants";
 import { store } from "../dataStore";
 import spotifyClient from "../spotifyClient";
@@ -123,17 +123,26 @@ async function updateChannelPlaylistForUser(
   }
   try {
     const playlistId = getChannelPlaylistId(channel.id, spotifyUserId);
-    await spotifyClient.addTracksToPlaylist(playlistId, _playlist.songUris);
+    // Spotify only allows 100 tracks to be added to a playlist at a time, so we batch into
+    // that amount and then upload each batch
+    const subdivide = curry(function group(n, list) {
+      return isEmpty(list)
+        ? []
+        : prepend(take(n, list), group(n, drop(n, list)));
+    });
+    const batchedSongUris = subdivide(100, _playlist.songUris) as string[][];
+    batchedSongUris.forEach(async (songUris, index) => {
+      await messageManager.send(
+        `Pushing batch ${index + 1} of ${batchedSongUris.length}`,
+        channel
+      );
+      await spotifyClient.addTracksToPlaylist(playlistId, songUris);
+    });
     await messageManager.send(Constants.Strings.successfulPush, channel);
   } catch (e) {
-    logger.error(
-      `Error adding tracks to playlist for Spotify user ${spotifyUserId}: ${e}`
-    );
-    return Promise.reject(
-      new Error(
-        `Unable to add to playlist. Has anything been added since the last update?`
-      )
-    );
+    const error = `Error adding tracks to playlist for Spotify user ${spotifyUserId}: ${e}`;
+    logger.error(error);
+    return Promise.reject(new Error(error));
   }
 
   return Promise.resolve();
