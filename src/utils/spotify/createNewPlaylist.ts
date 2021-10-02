@@ -1,20 +1,18 @@
-import { readFileSync } from "fs";
-import * as yaml from "js-yaml";
 import Constants from "../../constants";
 import { store } from "../../dataStore";
 import { getUserData } from "../../services/userDataService";
 import spotifyClient from "../../spotifyClient";
-import { Config } from "../../types/config";
 import { Playlist } from "../../types/playlist";
 import { SpotifyUser } from "../../types/spotifyUser";
 import { UserData } from "../../types/userData";
 import { logger } from "../logger";
+import yaml from "../yaml";
 
 export default async (
   spotifyUserId: SpotifyUser.Id,
   playlist: Playlist
 ): Promise<void> => {
-  const config = <Config>yaml.load(readFileSync("config.yml", "utf8"));
+  const config = yaml.getConfig();
   const playlistName = `${playlist.channelName} - ${config.playlistName}`;
   const prevUserData = getUserData();
   if (

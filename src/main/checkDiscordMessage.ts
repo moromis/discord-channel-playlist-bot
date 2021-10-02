@@ -3,8 +3,8 @@ import Commands from "../command/commands";
 import getCommand from "../command/getCommand";
 import { MENTION_REGEX } from "../constants";
 import isChannelSubscribedTo from "../utils/data/isChannelSubscribedTo";
+import extractAndProcessTracks from "../utils/discord/extractAndProcessTracks";
 import { messageManager } from "../utils/discord/MessageManager";
-import discordUtils from "../utils/discordUtils";
 import { logger } from "../utils/logger";
 import { discordClient } from "./setupDiscordClient";
 
@@ -66,7 +66,7 @@ export default async (message: Message): Promise<void> => {
     // check for spotify links
     if (isChannelSubscribedTo(message.channel.id)) {
       // Check for new tracks from users in the channel
-      const songUris = await discordUtils.extractAndProcessTracks(message);
+      const songUris = await extractAndProcessTracks(message);
       if (songUris.length) {
         logger.info(`I found some tasty tracks!\n${songUris.join(", ")}`);
       }

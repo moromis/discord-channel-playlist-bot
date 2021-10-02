@@ -1,11 +1,9 @@
-import { readFileSync } from "fs";
-import * as yaml from "js-yaml";
 import { DateTime } from "luxon";
-import { Config } from "../../types/config";
 import { Playlist } from "../../types/playlist";
+import yaml from "../yaml";
 
 export default (playlist: Playlist): boolean => {
-  const config = <Config>yaml.load(readFileSync("config.yml", "utf8"));
+  const config = yaml.getConfig();
   return (
     playlist.lastUpdateDate &&
     DateTime.fromISO(playlist.lastUpdateDate) >

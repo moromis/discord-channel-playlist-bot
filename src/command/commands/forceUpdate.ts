@@ -7,7 +7,7 @@ import createPlaylistObject from "../../utils/common/createPlaylistObject";
 import isChannelSubscribedTo from "../../utils/data/isChannelSubscribedTo";
 import { messageManager } from "../../utils/discord/MessageManager";
 import { logger } from "../../utils/logger";
-import spotifyUtils from "../../utils/spotifyUtils";
+import updateChannelPlaylist from "../../utils/spotify/updateChannelPlaylist";
 
 export const ForceUserPlaylistUpdateCommand: Command = async (
   message: Message
@@ -33,10 +33,7 @@ const doUpdate: Command = async (message: Message) => {
   if (channelPlaylist) {
     logger.info("Does have playlist: ", JSON.stringify(channelPlaylist));
     try {
-      await spotifyUtils.updateChannelPlaylist(
-        channelPlaylist,
-        message.channel
-      );
+      await updateChannelPlaylist(channelPlaylist, message.channel);
     } catch (e) {
       logger.error("Error: ", e);
       await messageManager.error(

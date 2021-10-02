@@ -1,27 +1,25 @@
 import { TextChannel } from "discord.js";
-import { readFileSync } from "fs";
-import * as yaml from "js-yaml";
 import { DateTime } from "luxon";
 import { isEmpty } from "ramda";
 import Constants from "../constants";
 import { store } from "../dataStore";
-import { Config } from "../types/config";
 import { ChannelPlaylistCollection, Playlist } from "../types/playlist";
 import checkIfUpdateRequired from "../utils/common/checkIfUpdateRequired";
 import createPlaylistObject from "../utils/common/createPlaylistObject";
 import { messageManager } from "../utils/discord/MessageManager";
 import { logger } from "../utils/logger";
-import spotifyUtils from "../utils/spotifyUtils";
+import updateChannelPlaylist from "../utils/spotify/updateChannelPlaylist";
+import yaml from "../utils/yaml";
 import { discordClient } from "./setupDiscordClient";
 
 // How many times the server should check for playlist updates, in seconds
 const TICKS_PER_SECOND = 1;
 
-const updateChannelPlaylist = async (): Promise<void> => {
-  const config = <Config>yaml.load(readFileSync("config.yml", "utf8"));
+const watchForChannelPlaylistUpdates = async (): Promise<void> => {
+  const config = yaml.getConfig();
 
   // Check for updates on the given tick interval
-  setTimeout(updateChannelPlaylist, 1000 / TICKS_PER_SECOND);
+  setTimeout(watchForChannelPlaylistUpdates, 1000 / TICKS_PER_SECOND);
 
   // Get all managed channel playlists
   const channelPlaylistCollection = store.get<ChannelPlaylistCollection>(
@@ -59,7 +57,7 @@ const updateChannelPlaylist = async (): Promise<void> => {
 
         // Update the users playlists
         try {
-          await spotifyUtils.updateChannelPlaylist(playlist, channel);
+          await updateChannelPlaylist(playlist, channel);
           await messageManager.cleanup(true);
         } catch (e) {
           logger.error(
@@ -84,4 +82,4 @@ const updateChannelPlaylist = async (): Promise<void> => {
   return Promise.resolve();
 };
 
-export default updateChannelPlaylist;
+export default watchForChannelPlaylistUpdates;

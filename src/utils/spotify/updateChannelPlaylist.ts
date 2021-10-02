@@ -1,18 +1,18 @@
 import { Message, TextChannel } from "discord.js";
 import { isEmpty, isNil } from "ramda";
-import Constants, { SpotifyAuthenticationErrors } from "../constants";
-import { store } from "../dataStore";
-import spotifyClient from "../spotifyClient";
-import { Playlist } from "../types/playlist";
-import { SpotifyUser } from "../types/spotifyUser";
-import { Subscription } from "../types/subscription";
-import createPlaylistObject from "./common/createPlaylistObject";
-import getChannelPlaylistId from "./data/getChannelPlaylistId";
-import { messageManager } from "./discord/MessageManager";
-import { logger } from "./logger";
-import authenticateAsUser from "./spotify/authenticateAsUser";
-import createNewPlaylist from "./spotify/createNewPlaylist";
-import uploadToSpotify from "./spotify/uploadToSpotify";
+import Constants, { SpotifyAuthenticationErrors } from "../../constants";
+import { store } from "../../dataStore";
+import spotifyClient from "../../spotifyClient";
+import { Playlist } from "../../types/playlist";
+import { SpotifyUser } from "../../types/spotifyUser";
+import { Subscription } from "../../types/subscription";
+import createPlaylistObject from "../common/createPlaylistObject";
+import getChannelPlaylistId from "../data/getChannelPlaylistId";
+import { messageManager } from "../discord/MessageManager";
+import { logger } from "../logger";
+import authenticateAsUser from "./authenticateAsUser";
+import createNewPlaylist from "./createNewPlaylist";
+import uploadToSpotify from "./uploadToSpotify";
 
 async function updateChannelPlaylistForUser(
   spotifyUserId: SpotifyUser.Id,
@@ -127,7 +127,4 @@ async function updateChannelPlaylist(
   return Promise.resolve();
 }
 
-export default {
-  updateChannelPlaylistForUser,
-  updateChannelPlaylist,
-};
+export default updateChannelPlaylist;

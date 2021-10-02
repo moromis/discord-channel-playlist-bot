@@ -6,8 +6,8 @@ import {
 import { DateTime } from "luxon";
 import { concat, last } from "ramda";
 import { Command } from "../../types/command";
+import extractAndProcessTracks from "../../utils/discord/extractAndProcessTracks";
 import { messageManager } from "../../utils/discord/MessageManager";
-import discordUtils from "../../utils/discordUtils";
 import { logger } from "../../utils/logger";
 
 const getMessages = async (
@@ -45,9 +45,7 @@ const getMessagesAndProcess = async (
       jsDate
   );
   logger.info("total messages fetched: ", allResults.length);
-  await Promise.all(
-    allResults.map((m) => discordUtils.extractAndProcessTracks(m))
-  );
+  await Promise.all(allResults.map((m) => extractAndProcessTracks(m)));
   return Promise.resolve();
 };
 

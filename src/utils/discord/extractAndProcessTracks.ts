@@ -1,34 +1,12 @@
 import { Message, TextBasedChannels, TextChannel } from "discord.js";
-import { readFileSync } from "fs";
-import * as yaml from "js-yaml";
 import { DateTime } from "luxon";
 import { clone, isEmpty, uniq } from "ramda";
-import Constants, { SPOTIFY_URL_REGEX } from "../constants";
-import { store } from "../dataStore";
-import { Config } from "../types/config";
-import { ChannelPlaylistCollection, Playlist } from "../types/playlist";
-import createPlaylistObject from "./common/createPlaylistObject";
-import { messageManager } from "./discord/MessageManager";
-
-function extractTracks(message: Message): string[] {
-  // Extract are any Spotify songs in this message
-  return message.content
-    .split(/\s+/)
-    .reduce<string[]>((uriList: string[], token: string) => {
-      const regexMatch = SPOTIFY_URL_REGEX.exec(token);
-
-      if (regexMatch && regexMatch.length > 1) {
-        uriList.push(regexMatch[1]);
-      }
-
-      return uriList;
-    }, []);
-}
-
-async function extractAndProcessTracks(message: Message): Promise<string[]> {
-  const results = await processTracks(message.channel, extractTracks(message));
-  return results;
-}
+import Constants, { SPOTIFY_URL_REGEX } from "../../constants";
+import { store } from "../../dataStore";
+import { ChannelPlaylistCollection, Playlist } from "../../types/playlist";
+import createPlaylistObject from "../common/createPlaylistObject";
+import { messageManager } from "../discord/MessageManager";
+import yaml from "../yaml";
 
 async function processTracks(
   channel: TextBasedChannels,
@@ -58,7 +36,7 @@ async function processTracks(
       channelPlaylistCollection
     );
 
-    const config = <Config>yaml.load(readFileSync("config.yml", "utf8"));
+    const config = yaml.getConfig();
     if (config.messageOnPlaylistChange) {
       await messageManager.send(
         Constants.Strings.Notifications.messageOnPlaylistChange,
@@ -70,4 +48,24 @@ async function processTracks(
   return trackUris;
 }
 
-export default { extractTracks, extractAndProcessTracks, processTracks };
+function extractTracks(message: Message): string[] {
+  // Extract are any Spotify songs in this message
+  return message.content
+    .split(/\s+/)
+    .reduce<string[]>((uriList: string[], token: string) => {
+      const regexMatch = SPOTIFY_URL_REGEX.exec(token);
+
+      if (regexMatch && regexMatch.length > 1) {
+        uriList.push(regexMatch[1]);
+      }
+
+      return uriList;
+    }, []);
+}
+
+async function extractAndProcessTracks(message: Message): Promise<string[]> {
+  const results = await processTracks(message.channel, extractTracks(message));
+  return results;
+}
+
+export default extractAndProcessTracks;

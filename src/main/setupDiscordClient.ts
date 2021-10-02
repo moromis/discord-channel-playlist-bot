@@ -3,7 +3,7 @@ import { env } from "process";
 import { logger } from "../utils/logger";
 import yaml from "../utils/yaml";
 import checkMessage from "./checkDiscordMessage";
-import updateChannelPlaylist from "./watchForChannelPlaylistUpdates";
+import watchForChannelPlaylistUpdates from "./watchForChannelPlaylistUpdates";
 
 export const discordClient: Client = new Client({
   intents: [
@@ -29,7 +29,7 @@ export default (): void => {
     logger.info(`Logged in as ${discordClient.user.tag}`);
 
     // Manage all channels' playlists
-    updateChannelPlaylist();
+    watchForChannelPlaylistUpdates();
   });
 
   discordClient.on("message", async (message) => {
