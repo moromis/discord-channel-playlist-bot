@@ -1,5 +1,4 @@
 import { Command } from "../types/command";
-import { logger } from "../utils/logger";
 import Commands from "./commands";
 
 const getCommand = (commandName: string): Command | null => {
@@ -17,7 +16,6 @@ const getCommand = (commandName: string): Command | null => {
     if (Commands[match]) {
       return Commands[match];
     } else {
-      logger.error("Command not found: ", commandName);
       return null;
     }
   }

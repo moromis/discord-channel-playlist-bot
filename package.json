@@ -42,7 +42,7 @@
     "spotify-web-api-node": "^5.0.2"
   },
   "scripts": {
-    "start": "nodemon --ignore ./data/ --exec ./node_modules/.bin/ts-node -r dotenv/config ./src/index.ts",
+    "start": "nodemon --ignore ./data/ --exec ./node_modules/.bin/ts-node -r ./node_modules/dotenv/config ./src/index.ts dotenv_config_path=.env",
     "predebug": "tsc",
     "debug": "node inspect ./dist/index.js",
     "prepare": "husky install",

@@ -1,4 +1,9 @@
-import { Message, TextBasedChannels } from "discord.js";
+import {
+  EmojiIdentifierResolvable,
+  Message,
+  MessageReaction,
+  TextBasedChannels,
+} from "discord.js";
 import { equals, isNil } from "ramda";
 import { logger } from "../logger";
 
@@ -12,8 +17,9 @@ interface MessageManagerInterface {
 }
 
 export class MessageManager implements MessageManagerInterface {
-  // private reactCache: MessageReaction = null;
+  private reactCache: MessageReaction = null;
   private userMessageCache: Message = null;
+  private botId: string = null;
   private cache: Message = null;
   private loadingCache: Message = null;
 
@@ -21,10 +27,10 @@ export class MessageManager implements MessageManagerInterface {
     message: string,
     channel: AcceptableChannels
   ): Promise<void> {
-    logger.info("sending: ", message);
     if (this.cache === null) {
       const discordMessage = await channel.send(message);
       this.cache = discordMessage;
+      this.botId = discordMessage.author.id;
     } else {
       await this.cache.edit(message).catch((e) => {
         // swallow errors, it might be that we're not in sync
@@ -37,7 +43,6 @@ export class MessageManager implements MessageManagerInterface {
     message: string,
     channel: AcceptableChannels
   ): Promise<void> {
-    logger.info("sending error: ", message);
     await channel.send(
       `\`\`\`diff
 ERROR:
@@ -47,7 +52,6 @@ ERROR:
   }
 
   public async reply(response: string, message: Message): Promise<void> {
-    logger.info("replying with: ", response);
     if (message) {
       await message.reply(response).catch((e) => {
         this.error(e, message.channel);
@@ -80,6 +84,34 @@ ERROR:
     this.loadingCache = null;
   }
 
+  private async reactToMessage(
+    emoji: EmojiIdentifierResolvable
+  ): Promise<void> {
+    if (this.userMessageCache) {
+      // remove old reaction
+      if (this.reactCache && this.botId) {
+        await this.reactCache.users.remove(this.botId).catch(async (e) => {
+          await this.error(e, this.userMessageCache.channel);
+          return Promise.reject(e);
+        });
+        this.reactCache = null;
+      }
+      // add new reaction
+      await this.userMessageCache
+        .react(emoji)
+        .then((reaction) => {
+          if (this.reactCache === null) {
+            this.reactCache = reaction;
+          }
+        })
+        .catch(async (e) => {
+          await this.error(e, this.userMessageCache.channel);
+          return Promise.reject(e);
+        });
+    }
+    return Promise.resolve();
+  }
+
   public async cleanup(allOk: boolean, userMessage?: Message): Promise<void> {
     if (this.userMessageCache !== userMessage && !isNil(userMessage)) {
       this.userMessageCache = userMessage;
@@ -99,42 +131,12 @@ ERROR:
           }
         });
       }
-      if (this.userMessageCache) {
-        // TODO: fix, permissions issue. Alternatively just
-        //       fix command reactions preceding index uploading the playlist... maybe?
-        // if (this.reactCache) {
-        //   logger.info("removing previous reaction");
-        //   await this.reactCache.remove();
-        // }
-        await this.userMessageCache
-          .react("✅")
-          // .then((reaction) => {
-          //   this.reactCache = reaction;
-          // })
-          .catch(async (e) => {
-            await this.error(e, this.userMessageCache.channel);
-          });
-      }
+      await this.reactToMessage("✅");
     } else {
-      logger.info("got false for allOk");
-      if (this.userMessageCache) {
-        // TODO: fix, permissions issue. Alternatively just
-        //       fix command reactions preceding index uploading the playlist... maybe?
-        // if (this.reactCache) {
-        //   logger.info("removing previous reaction");
-        //   await this.reactCache.remove();
-        // }
-        await this.userMessageCache
-          .react("🚫")
-          // .then((reaction) => {
-          //   this.reactCache = reaction;
-          // })
-          .catch(async (e) => {
-            await this.error(e, this.userMessageCache.channel);
-          });
-      }
+      await this.reactToMessage("🚫");
     }
     await this.clearCache();
+    return Promise.resolve();
   }
 }
 

@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { DateTime } from "luxon";
-import Constants from "../../constants";
+import Constants, { MENTION_REGEX } from "../../constants";
 import { store } from "../../dataStore";
 import spotifyClient from "../../spotifyClient";
 import { Command } from "../../types/command";
@@ -15,7 +15,11 @@ export const RegisterTokenCommand: Command = async (
   message: Discord.Message,
   authCode: string
 ) => {
-  if (!authCode) {
+  // figure out what/where our auth code is
+  const messageWithoutMention = message.content.replace(MENTION_REGEX, "");
+  const _authCode = authCode ? authCode : messageWithoutMention;
+
+  if (!_authCode) {
     await messageManager.reply(Strings.missingToken, message);
     return Promise.reject();
   }
@@ -23,7 +27,7 @@ export const RegisterTokenCommand: Command = async (
   // Retrieve an access token and a refresh token
   let data;
   try {
-    data = await spotifyClient.authorizationCodeGrant(authCode);
+    data = await spotifyClient.authorizationCodeGrant(_authCode);
   } catch (e) {
     await messageManager.reply(Strings.invalidToken, message);
 

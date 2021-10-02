@@ -1,3 +1,10 @@
+// REGEX
+export const MENTION_REGEX = /<@.*?>\s+/;
+
+export const SPOTIFY_URL_REGEX =
+  /^(?:https?:\/\/)?open\.spotify\.com\/track\/([^?\s]+)(\?[^\s]+)?$/i;
+
+// STRINGS
 export enum SpotifyAuthenticationErrors {
   UNKNOWN = "-1",
   NOT_AUTHORIZED = "Unable to authenticate. If you haven't authorized this app yet, please run `!authorize`",

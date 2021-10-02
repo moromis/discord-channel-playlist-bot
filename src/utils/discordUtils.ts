@@ -1,33 +1,14 @@
-import {
-  Client,
-  Intents,
-  Message,
-  TextBasedChannels,
-  TextChannel,
-} from "discord.js";
+import { Message, TextBasedChannels, TextChannel } from "discord.js";
 import { readFileSync } from "fs";
 import * as yaml from "js-yaml";
 import { DateTime } from "luxon";
 import { clone, isEmpty, uniq } from "ramda";
-import Constants from "../constants";
+import Constants, { SPOTIFY_URL_REGEX } from "../constants";
 import { store } from "../dataStore";
 import { Config } from "../types/config";
 import { ChannelPlaylistCollection, Playlist } from "../types/playlist";
 import createPlaylistObject from "./common/createPlaylistObject";
 import { messageManager } from "./discord/MessageManager";
-
-export const SPOTIFY_URL_REGEX =
-  /^(?:https?:\/\/)?open\.spotify\.com\/track\/([^?\s]+)(\?[^\s]+)?$/i;
-
-export const discordClient: Client = new Client({
-  intents: [
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.DIRECT_MESSAGES,
-    Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-    Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
-  ],
-});
 
 function extractTracks(message: Message): string[] {
   // Extract are any Spotify songs in this message

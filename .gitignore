@@ -11,3 +11,4 @@ config.yml
 *.log
 
 *.env*
+!placeholder.env
