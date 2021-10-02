@@ -3,6 +3,7 @@ node_modules/
 !.vscode/settings.json
 !.vscode/extensions.json
 data/
+!src/utils/data/
 dist/
 
 auth.yml
