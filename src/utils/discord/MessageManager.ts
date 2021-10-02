@@ -118,7 +118,11 @@ ERROR:
     }
     if (allOk) {
       if (this.cache) {
-        if (equals(this.cache.id, this.userMessageCache.id)) {
+        if (
+          this.cache &&
+          this.userMessageCache &&
+          equals(this.cache.id, this.userMessageCache.id)
+        ) {
           await this.error(
             "Cached message and user message are the same. Very bad.",
             this.userMessageCache.channel

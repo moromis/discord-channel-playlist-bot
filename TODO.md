@@ -10,3 +10,5 @@
 - replace `commands` with [ApplicationCommandManager](https://discord.js.org/#/docs/main/stable/class/ApplicationCommandManager)?
 - if playlist becomes "corrupt", i.e. doesn't exist or something like that, delete entry in store and create a new one
 - if we don't replace commands, add descriptions to them
+- if we make a new playlist, give deleting the old one a shot
+- fix reacting to old command when a song is posted

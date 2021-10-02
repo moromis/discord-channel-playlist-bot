@@ -60,6 +60,7 @@ const updateChannelPlaylist = async (): Promise<void> => {
         // Update the users playlists
         try {
           await spotifyUtils.updateChannelPlaylist(playlist, channel);
+          await messageManager.cleanup(true);
         } catch (e) {
           logger.error(
             `Error updating playlist for channel "${playlist.channelName}": `
