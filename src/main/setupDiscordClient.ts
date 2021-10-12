@@ -35,12 +35,16 @@ export default (): void => {
   discordClient.on("message", async (message) => {
     // Analyze each user message that comes in
     const channel = <TextChannel>message.channel;
+
+    // if env.LOCAL == true, only allow messages if we're in a channel with "test" in the name or a DM channel
     if (
-      (!env.LOCAL ||
-        (channel && channel.name && channel.name.includes("test")) ||
-        message.channel instanceof DMChannel) &&
-      message.author.id !== discordClient.user.id
+      env.LOCAL &&
+      ((channel && channel.name && !channel.name.includes("test")) ||
+        !(message.channel instanceof DMChannel))
     ) {
+      return;
+    }
+    if (message.author.id !== discordClient.user.id) {
       await checkMessage(message);
     }
   });
