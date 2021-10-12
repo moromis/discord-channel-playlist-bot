@@ -1,5 +1,4 @@
-import { Client, DMChannel, Intents, TextChannel } from "discord.js";
-import { env } from "process";
+import { Client, Intents } from "discord.js";
 import { logger } from "../utils/logger";
 import yaml from "../utils/yaml";
 import checkMessage from "./checkDiscordMessage";
@@ -34,16 +33,6 @@ export default (): void => {
 
   discordClient.on("message", async (message) => {
     // Analyze each user message that comes in
-    const channel = <TextChannel>message.channel;
-
-    // if env.LOCAL == true, only allow messages if we're in a channel with "test" in the name or a DM channel
-    if (
-      env.LOCAL &&
-      ((channel && channel.name && !channel.name.includes("test")) ||
-        !(message.channel instanceof DMChannel))
-    ) {
-      return;
-    }
     if (message.author.id !== discordClient.user.id) {
       await checkMessage(message);
     }
